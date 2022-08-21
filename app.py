@@ -2,6 +2,8 @@ import streamlit as st
 from streamlit_option_menu import option_menu
 from image_object_detection import ImageObjectDetection
 from video_object_detection import VideoObjectDetection
+from image_classification import ImageClassification
+import plotly.express as px
 from PIL import Image
 from io import BytesIO
 import base64
@@ -16,20 +18,31 @@ hide_streamlit_style = """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 
-@st.cache(allow_output_mutation=True)
-def load_image_object_detection():
-    return ImageObjectDetection()
+# @st.cache(allow_output_mutation=True)
+# def load_image_object_detection():
+#     return ImageObjectDetection()
+#
+#
+# @st.cache(allow_output_mutation=True)
+# def load_video_object_detection():
+#     return VideoObjectDetection()
 
 
 @st.cache(allow_output_mutation=True)
-def load_video_object_detection():
-    return VideoObjectDetection()
+def load_image_classifier():
+    return ImageClassification()
 
 
-image_object_detection = load_image_object_detection()
-video_object_detection = load_video_object_detection()
+# image_object_detection = load_image_object_detection()
+# video_object_detection = load_video_object_detection()
+image_classifier = load_image_classifier()
 
-image_examples = {'Traffic': 'examples/traffic.jpeg', 'BBQ': 'examples/bbq.jpeg', 'WFH': 'examples/wfh.jpeg'}
+image_examples = {'Traffic': 'examples/traffic.jpeg',
+                  'BBQ': 'examples/bbq.jpeg',
+                  'WFH': 'examples/wfh.jpeg',
+                  'Car': 'examples/car.jpeg',
+                  'Dog': 'examples/dog.jpeg',
+                  'Tropics': 'examples/tropics.jpeg'}
 video_examples = {'Traffic': 'examples/traffic.mp4'}
 
 with st.sidebar:
@@ -210,16 +223,37 @@ elif page == 'Classification':
 
     data_type = st.radio(
         "Input Data Type",
-        ('Image', 'Video'))
+        (['Image']))
 
-    if data_type == 'Video':
-        uploaded_file = st.file_uploader("Choose a file", type=['mp4'])
-        skip_frames = st.slider("Detect in every Nth frame", value=10, min_value=1, max_value=20, step=1)
+    input_type = st.radio(
+        "Use example or upload your own?",
+        ('Example', 'Upload'))
+
+    if input_type == 'Example':
+        option = st.selectbox(
+            'Which example would you like to use?',
+            ('Car', 'Dog', 'Tropics'))
+        uploaded_file = image_examples[option]
     else:
         uploaded_file = st.file_uploader("Choose a file", type=['jpg', 'jpeg', 'png'])
 
     if st.button('🔥 Run!'):
-        pass
+        if uploaded_file is None:
+            st.error("No file uploaded yet.")
+        else:
+            st.spinner("Running object detection...")
+            img = Image.open(uploaded_file)
+            preds = image_classifier.classify(img)
+
+            st.write("")
+            st.subheader("Classification Predictions")
+            fig = px.bar(preds.sort_values("Pred_Prob", ascending=True), x='Pred_Prob', y='Class', orientation='h')
+            st.write(fig)
+
+            st.write("")
+            csv = preds.to_csv(index=False).encode('utf-8')
+            st.download_button('Download Predictions',csv,
+                               file_name='classification_predictions.csv')
 
 elif page == 'Segmentation':
     st.header('Segmentation')

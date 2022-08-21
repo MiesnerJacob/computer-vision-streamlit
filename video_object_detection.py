@@ -50,5 +50,4 @@ class VideoObjectDetection:
 
                 # Visualize prediction
                 viz_img, filtered_preds = visualize_prediction(image, output_dict, id2label=self.model.config.id2label)
-                st.success("Success")
                 image_container.image(viz_img, caption=f'frame number #{index}')
