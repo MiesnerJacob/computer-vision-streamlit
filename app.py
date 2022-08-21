@@ -3,6 +3,9 @@ from streamlit_option_menu import option_menu
 from image_object_detection import ImageObjectDetection
 from video_object_detection import VideoObjectDetection
 from image_classification import ImageClassification
+from image_segmentation import ImageSegmentation
+from image_captioning import ImageCaptioning
+from image_question_answering import ImageQuestionAnswering
 import plotly.express as px
 from PIL import Image
 from io import BytesIO
@@ -18,11 +21,11 @@ hide_streamlit_style = """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 
-# @st.cache(allow_output_mutation=True)
-# def load_image_object_detection():
-#     return ImageObjectDetection()
-#
-#
+@st.cache(allow_output_mutation=True)
+def load_image_object_detection():
+    return ImageObjectDetection()
+
+
 # @st.cache(allow_output_mutation=True)
 # def load_video_object_detection():
 #     return VideoObjectDetection()
@@ -32,18 +35,33 @@ st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 def load_image_classifier():
     return ImageClassification()
 
+# @st.cache(allow_output_mutation=True)
+# def load_image_segmentation():
+#     return ImageSegmentation()
 
-# image_object_detection = load_image_object_detection()
+@st.cache(allow_output_mutation=True)
+def load_image_captioning():
+    return ImageCaptioning()
+
+@st.cache(allow_output_mutation=True)
+def load_image_question_answer():
+    return ImageQuestionAnswering()
+
+
+image_object_detection = load_image_object_detection()
 # video_object_detection = load_video_object_detection()
 image_classifier = load_image_classifier()
+# image_segmentation = load_image_segmentation()
+image_captioning = load_image_captioning()
+image_question_answering = load_image_question_answer()
 
-image_examples = {'Traffic': 'examples/traffic.jpeg',
-                  'BBQ': 'examples/bbq.jpeg',
-                  'WFH': 'examples/wfh.jpeg',
-                  'Car': 'examples/car.jpeg',
-                  'Dog': 'examples/dog.jpeg',
-                  'Tropics': 'examples/tropics.jpeg'}
-video_examples = {'Traffic': 'examples/traffic.mp4'}
+image_examples = {'Traffic': 'examples/Traffic.jpeg',
+                  'Barbeque': 'examples/Barbeque.jpeg',
+                  'Home Office': 'examples/Home Office.jpeg',
+                  'Car': 'examples/Car.jpeg',
+                  'Dog': 'examples/Dog.jpeg',
+                  'Tropics': 'examples/Tropics.jpeg'}
+video_examples = {'Traffic': 'examples/Traffic.mp4'}
 
 with st.sidebar:
     page = option_menu(menu_title='Menu',
@@ -51,11 +69,15 @@ with st.sidebar:
                        options=["Welcome!",
                                 "Object Detection",
                                 "Classification",
-                                "Segmentation"],
+                                "Semantic Segmentation",
+                                "Captioning",
+                                "Question Answering"],
                        icons=["house-door",
                               "search",
                               "check-circle",
-                              "cone-striped"],
+                              "cone-striped",
+                              "body-text",
+                              "question-circle"],
                        default_index=0,
                        )
 
@@ -105,7 +127,7 @@ if page == "Welcome!":
         if input_type == 'Example':
             option = st.selectbox(
                 'Which example would you like to use?',
-                ('Traffic', 'BBQ', 'WFH'))
+                ('Home Office', 'Traffic', 'Barbeque'))
             uploaded_file = image_examples[option]
         else:
             uploaded_file = st.file_uploader("Choose a file", type=['jpg', 'jpeg', 'png'])
@@ -127,7 +149,9 @@ if page == "Welcome!":
         * This application currently supports:
             * Object Detection
             * Classification
-            * Segmentation
+            * Semantic Segmentation
+            * Captioning
+            * Question Answering
 
         More features may be added in the future including additional Computer Vision tasks, depending on community feedback. 
         Please reach out to me at miesner.jacob@gmail.com or at my Linkedin page listed below if you have ideas or suggestions for improvement.
@@ -182,17 +206,17 @@ if page == "Object Detection":
             if uploaded_file is None:
                 st.error("No file uploaded yet.")
             else:
-                st.spinner("Creating video frames...")
-                frames = video_object_detection.create_video_frames(vid, skip_frames)
+                with st.spinner("Creating video frames..."):
+                    frames = video_object_detection.create_video_frames(vid, skip_frames)
 
-                st.spinner("Running object detection...")
-                video_object_detection.object_detection(frames, skip_frames)
+                with st.spinner("Running object detection..."):
+                    video_object_detection.object_detection(frames, skip_frames)
 
     else:
         if input_type == 'Example':
             option = st.selectbox(
                 'Which example would you like to use?',
-                ('Traffic', 'BBQ', 'WFH'))
+                ('Home Office', 'Traffic', 'Barbeque'))
             uploaded_file = image_examples[option]
         else:
             uploaded_file = st.file_uploader("Choose a file", type=['jpg', 'jpeg', 'png'])
@@ -201,15 +225,18 @@ if page == "Object Detection":
             if uploaded_file is None:
                 st.error("No file uploaded yet.")
             else:
-                st.spinner("Running object detection...")
-                img = Image.open(uploaded_file)
-                labeled_image, detections = image_object_detection.classify(img)
+                with st.spinner("Running object detection..."):
+                    img = Image.open(uploaded_file)
+                    labeled_image, detections = image_object_detection.classify(img)
 
                 if labeled_image and detections:
                     # Create image buffer and download
                     buf = BytesIO()
-                    img.save(buf, format="JPEG")
+                    labeled_image.save(buf, format="PNG")
                     byte_im = buf.getvalue()
+
+                    st.subheader("Object Detection Predictions")
+                    st.image(labeled_image)
                     st.download_button('Download Image', data=byte_im,file_name="image_object_detection.png", mime="image/jpeg")
 
                     # Create json and download button
@@ -241,12 +268,13 @@ elif page == 'Classification':
         if uploaded_file is None:
             st.error("No file uploaded yet.")
         else:
-            st.spinner("Running object detection...")
-            img = Image.open(uploaded_file)
-            preds = image_classifier.classify(img)
+            with st.spinner("Running classification..."):
+                img = Image.open(uploaded_file)
+                preds = image_classifier.classify(img)
 
             st.write("")
             st.subheader("Classification Predictions")
+            st.image(img)
             fig = px.bar(preds.sort_values("Pred_Prob", ascending=True), x='Pred_Prob', y='Class', orientation='h')
             st.write(fig)
 
@@ -255,17 +283,88 @@ elif page == 'Classification':
             st.download_button('Download Predictions',csv,
                                file_name='classification_predictions.csv')
 
-elif page == 'Segmentation':
-    st.header('Segmentation')
+elif page == 'Semantic Segmentation':
+    st.header('Semantic Segmentation')
     st.markdown("![Alt Text](https://media.giphy.com/media/urvsFBDfR6N32/giphy.gif)")
 
     data_type = st.radio(
         "Input Data Type",
-        ('Image', 'Video'))
+        (['Image']))
 
-    if data_type == 'Video':
-        uploaded_file = st.file_uploader("Choose a file", type=['mp4'])
-        skip_frames = st.slider("Detect in every Nth frame", value=10, min_value=1, max_value=20, step=1)
+    input_type = st.radio(
+        "Use example or upload your own?",
+        ('Example', 'Upload'))
+
+    if input_type == 'Example':
+        option = st.selectbox(
+            'Which example would you like to use?',
+            ('Home Office', 'Traffic', 'Barbeque', 'Car', 'Dog', 'Tropics'))
+        uploaded_file = image_examples[option]
+    else:
+        uploaded_file = st.file_uploader("Choose a file", type=['jpg', 'jpeg', 'png'])
+
+    if st.button('🔥 Run!'):
+        if uploaded_file is None:
+            st.error("No file uploaded yet.")
+        else:
+            with st.spinner("Running segmentation..."):
+                img = Image.open(uploaded_file)
+                labeled_image, detections = image_segmentation.classify(img)
+
+elif page == 'Captioning':
+    st.header('Captioning')
+    st.markdown("![Alt Text](https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif)")
+
+    data_type = st.radio(
+        "Input Data Type",
+        (['Image']))
+
+    input_type = st.radio(
+        "Use example or upload your own?",
+        ('Example', 'Upload'))
+
+    if input_type == 'Example':
+        option = st.selectbox(
+            'Which example would you like to use?',
+            ('Home Office', 'Traffic', 'Barbeque', 'Car', 'Dog', 'Tropics'))
+        uploaded_file = image_examples[option]
+    else:
+        uploaded_file = st.file_uploader("Choose a file", type=['jpg', 'jpeg', 'png'])
+
+    if st.button('🔥 Run!'):
+        if uploaded_file is None:
+            st.error("No file uploaded yet.")
+        else:
+            with st.spinner("Running caption generation..."):
+                img = image_captioning.caption(uploaded_file)
+
+                # Create image buffer and download
+                buf = BytesIO()
+                img.save(buf, format="PNG")
+                byte_im = buf.getvalue()
+
+                st.subheader("Captioning Prediction")
+                st.image(img)
+                st.download_button('Download Image', data=byte_im, file_name="image_object_detection.png",
+                                   mime="image/jpeg")
+
+elif page == 'Question Answering':
+    st.header('Question Answering')
+    st.markdown("![Alt Text](https://media.giphy.com/media/GfaZNzU42Snz6dlGhN/giphy.gif)")
+
+    data_type = st.radio(
+        "Input Data Type",
+        (['Image']))
+
+    input_type = st.radio(
+        "Use example or upload your own?",
+        ('Example', 'Upload'))
+
+    if input_type == 'Example':
+        option = st.selectbox(
+            'Which example would you like to use?',
+            ('Home Office', 'Traffic', 'Barbeque', 'Car', 'Dog', 'Tropics'))
+        uploaded_file = image_examples[option]
     else:
         uploaded_file = st.file_uploader("Choose a file", type=['jpg', 'jpeg', 'png'])
 

@@ -1,6 +1,6 @@
 
 
 
-class ImageSegmentation:
+class ImageQuestionAnswering:
     def __init__(self):
         pass
