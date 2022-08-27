@@ -52,7 +52,7 @@ class ImageCaptioning:
         bi = Image.new("RGBA", (width + 10, height + (height // 5)), "white")
         bi.paste(image, (5, 5, (width + 5), (height + 5)))
 
-        font_family = 'DePixelBreit.ttf'
+        font_family = 'resources/DePixelBreit.ttf'
         font_size = self.find_font_size(caption, font_family, bi, width_ratio=.8)
         font = ImageFont.truetype(font_family, size=font_size)
         w, h = font.getsize(caption)

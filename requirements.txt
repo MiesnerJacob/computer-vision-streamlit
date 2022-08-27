@@ -1,2 +1,4 @@
 scikit-video
 streamlit-option-menu~=0.3.2
+pip install -U streamlit-webrtc
+pip install timm

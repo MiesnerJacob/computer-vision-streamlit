@@ -1,7 +1,7 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
-from image_object_detection import ImageObjectDetection
 from video_object_detection import VideoObjectDetection
+from image_object_detection import ImageObjectDetection
 from image_classification import ImageClassification
 from image_segmentation import ImageSegmentation
 from image_captioning import ImageCaptioning
@@ -11,6 +11,12 @@ from PIL import Image
 from io import BytesIO
 import base64
 import json
+from streamlit_webrtc import (
+    RTCConfiguration,
+    WebRtcMode,
+    WebRtcStreamerContext,
+    webrtc_streamer,
+)
 
 hide_streamlit_style = """
             <style>
@@ -20,16 +26,13 @@ hide_streamlit_style = """
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
+@st.cache(allow_output_mutation=True)
+def load_video_object_detection():
+    return VideoObjectDetection()
 
 @st.cache(allow_output_mutation=True)
 def load_image_object_detection():
     return ImageObjectDetection()
-
-
-# @st.cache(allow_output_mutation=True)
-# def load_video_object_detection():
-#     return VideoObjectDetection()
-
 
 @st.cache(allow_output_mutation=True)
 def load_image_classifier():
@@ -43,17 +46,12 @@ def load_image_classifier():
 def load_image_captioning():
     return ImageCaptioning()
 
-@st.cache(allow_output_mutation=True)
-def load_image_question_answer():
-    return ImageQuestionAnswering()
 
-
+video_object_detection = load_video_object_detection()
 image_object_detection = load_image_object_detection()
-# video_object_detection = load_video_object_detection()
 image_classifier = load_image_classifier()
 # image_segmentation = load_image_segmentation()
 image_captioning = load_image_captioning()
-image_question_answering = load_image_question_answer()
 
 image_examples = {'Traffic': 'examples/Traffic.jpeg',
                   'Barbeque': 'examples/Barbeque.jpeg',
@@ -70,14 +68,12 @@ with st.sidebar:
                                 "Object Detection",
                                 "Classification",
                                 "Semantic Segmentation",
-                                "Captioning",
-                                "Question Answering"],
+                                "Captioning"],
                        icons=["house-door",
                               "search",
                               "check-circle",
                               "cone-striped",
-                              "body-text",
-                              "question-circle"],
+                              "body-text"],
                        default_index=0,
                        )
 
@@ -87,7 +83,7 @@ st.title('Open-source Computer Vision')
 st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
 
 # Load and display local gif file
-file_ = open("camera-robot-eye.gif", "rb")
+file_ = open("resources/camera-robot-eye.gif", "rb")
 contents = file_.read()
 data_url = base64.b64encode(contents).decode("utf-8")
 file_.close()
@@ -102,35 +98,19 @@ if page == "Welcome!":
     st.subheader('Quickstart')
     st.write(
         """
-        Select pick example or upload file below and flip through the pages in the menu to perform CV tasks on-demand!
+        Flip through the pages in the menu on the left hand side bar to perform CV tasks on-demand!
+        
+        Run computer vision tasks on:
+        
+            * Images
+                * Examples
+                * Upload your own
+            * Video
+                * Webcam
+                * Examples
+                * Upload your own
         """
     )
-
-    data_type = st.radio(
-        "Input Data Type",
-        ('Image', 'Video'))
-
-    input_type = st.radio(
-        "Use example or upload your own?",
-        ('Example', 'Upload'))
-
-    if data_type == 'Video':
-        if input_type == 'Example':
-            option = st.selectbox(
-                'Which example would you like to use?',
-                (['Traffic']))
-            uploaded_file = image_examples[option]
-            vid = uploaded_file
-        else:
-            uploaded_file = st.file_uploader("Choose a file", type=['mp4'])
-    else:
-        if input_type == 'Example':
-            option = st.selectbox(
-                'Which example would you like to use?',
-                ('Home Office', 'Traffic', 'Barbeque'))
-            uploaded_file = image_examples[option]
-        else:
-            uploaded_file = st.file_uploader("Choose a file", type=['jpg', 'jpeg', 'png'])
 
     st.subheader("Introduction")
     st.write("""
@@ -179,14 +159,27 @@ if page == "Object Detection":
     st.markdown("![Alt Text](https://media.giphy.com/media/vAvWgk3NCFXTa/giphy.gif)")
 
     data_type = st.radio(
-        "Input Data Type",
-        ('Image', 'Video'))
+        "Select Data Type",
+        ('Webcam', 'Video', 'Image'))
 
-    input_type = st.radio(
-        "Use example or upload your own?",
-        ('Example', 'Upload'))
+    if data_type == 'Webcam':
+        RTC_CONFIGURATION = RTCConfiguration(
+            {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
+        )
+        webrtc_ctx = webrtc_streamer(
+            key="object-detection",
+            mode=WebRtcMode.SENDRECV,
+            rtc_configuration=RTC_CONFIGURATION,
+            video_frame_callback=video_object_detection.callback,
+            media_stream_constraints={"video": True, "audio": False},
+            async_processing=True,
+        )
 
-    if data_type == 'Video':
+    elif data_type == 'Video':
+        input_type = st.radio(
+            "Use example or upload your own?",
+            ('Example', 'Upload'))
+
         if input_type == 'Example':
             option = st.selectbox(
                 'Which example would you like to use?',
@@ -195,7 +188,6 @@ if page == "Object Detection":
             vid = uploaded_file
         else:
             uploaded_file = st.file_uploader("Choose a file", type=['mp4'])
-        skip_frames = st.slider("Detect in every Nth frame", value=10, min_value=1, max_value=20, step=1)
 
         if uploaded_file and input_type == 'Upload':
             vid = uploaded_file.name
@@ -203,16 +195,32 @@ if page == "Object Detection":
                 f.write(uploaded_file.read())
 
         if st.button('🔥 Run!'):
+            if st.button('STOP'):
+                pass
             if uploaded_file is None:
                 st.error("No file uploaded yet.")
             else:
                 with st.spinner("Creating video frames..."):
-                    frames = video_object_detection.create_video_frames(vid, skip_frames)
+                    frames, fps = video_object_detection.create_video_frames(vid)
 
                 with st.spinner("Running object detection..."):
-                    video_object_detection.object_detection(frames, skip_frames)
+                    st.subheader("Object Detection Predictions")
+                    video_object_detection.static_vid_obj(frames, fps)
+
+                video_file=open('outputs/annotated_video.mp4', 'rb')
+                video_bytes = video_file.read()
+                st.download_button(
+                    label="Download annotated video",
+                    data=video_bytes,
+                    file_name='annotated_video.mp4',
+                    mime='video/mp4',
+                )
 
     else:
+        input_type = st.radio(
+            "Use example or upload your own?",
+            ('Example', 'Upload'))
+
         if input_type == 'Example':
             option = st.selectbox(
                 'Which example would you like to use?',
@@ -249,7 +257,7 @@ elif page == 'Classification':
     st.markdown("![Alt Text](https://media.giphy.com/media/Zvgb12U8GNjvq/giphy.gif)")
 
     data_type = st.radio(
-        "Input Data Type",
+        "Select Data Type",
         (['Image']))
 
     input_type = st.radio(
@@ -288,7 +296,7 @@ elif page == 'Semantic Segmentation':
     st.markdown("![Alt Text](https://media.giphy.com/media/urvsFBDfR6N32/giphy.gif)")
 
     data_type = st.radio(
-        "Input Data Type",
+        "Select Data Type",
         (['Image']))
 
     input_type = st.radio(
@@ -316,7 +324,7 @@ elif page == 'Captioning':
     st.markdown("![Alt Text](https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif)")
 
     data_type = st.radio(
-        "Input Data Type",
+        "Select Data Type",
         (['Image']))
 
     input_type = st.radio(
@@ -347,26 +355,3 @@ elif page == 'Captioning':
                 st.image(img)
                 st.download_button('Download Image', data=byte_im, file_name="image_object_detection.png",
                                    mime="image/jpeg")
-
-elif page == 'Question Answering':
-    st.header('Question Answering')
-    st.markdown("![Alt Text](https://media.giphy.com/media/GfaZNzU42Snz6dlGhN/giphy.gif)")
-
-    data_type = st.radio(
-        "Input Data Type",
-        (['Image']))
-
-    input_type = st.radio(
-        "Use example or upload your own?",
-        ('Example', 'Upload'))
-
-    if input_type == 'Example':
-        option = st.selectbox(
-            'Which example would you like to use?',
-            ('Home Office', 'Traffic', 'Barbeque', 'Car', 'Dog', 'Tropics'))
-        uploaded_file = image_examples[option]
-    else:
-        uploaded_file = st.file_uploader("Choose a file", type=['jpg', 'jpeg', 'png'])
-
-    if st.button('🔥 Run!'):
-        pass
