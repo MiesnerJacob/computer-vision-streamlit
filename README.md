@@ -1,5 +1,5 @@
 ---
-title: Computer Vision (Image & Video)
+title: Computer Vision (Webcam, Video, Image)
 emoji: 🤖👀💻👁️
 sdk: streamlit
 sdk_version: 1.10.0

@@ -155,7 +155,7 @@ if page == "Welcome!":
         """
         * If you are interested viewing the source code for this project or any of my other works you can view them here:
         
-           [Project Github](https://github.com/MiesnerJacob/Multi-task-NLP-dashboard)
+           [Project Github](https://github.com/MiesnerJacob/computer-vision-streamlit)
 
            [Jacob Miesner's Github](https://github.com/MiesnerJacob)
 
