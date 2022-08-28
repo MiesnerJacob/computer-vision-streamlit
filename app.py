@@ -3,14 +3,14 @@ from streamlit_option_menu import option_menu
 from video_object_detection import VideoObjectDetection
 from image_object_detection import ImageObjectDetection
 from image_classification import ImageClassification
-from image_segmentation import ImageSegmentation
+from hand_gesture_classification import HandGestureClassification
 from image_captioning import ImageCaptioning
-from image_question_answering import ImageQuestionAnswering
 import plotly.express as px
 from PIL import Image
 from io import BytesIO
 import base64
 import json
+import os
 from streamlit_webrtc import (
     RTCConfiguration,
     WebRtcMode,
@@ -38,9 +38,9 @@ def load_image_object_detection():
 def load_image_classifier():
     return ImageClassification()
 
-# @st.cache(allow_output_mutation=True)
-# def load_image_segmentation():
-#     return ImageSegmentation()
+@st.cache(allow_output_mutation=True)
+def load_hand_gesture_classifier():
+    return HandGestureClassification()
 
 @st.cache(allow_output_mutation=True)
 def load_image_captioning():
@@ -50,7 +50,7 @@ def load_image_captioning():
 video_object_detection = load_video_object_detection()
 image_object_detection = load_image_object_detection()
 image_classifier = load_image_classifier()
-# image_segmentation = load_image_segmentation()
+hand_gesture_classifier = load_hand_gesture_classifier()
 image_captioning = load_image_captioning()
 
 image_examples = {'Traffic': 'examples/Traffic.jpeg',
@@ -59,23 +59,35 @@ image_examples = {'Traffic': 'examples/Traffic.jpeg',
                   'Car': 'examples/Car.jpeg',
                   'Dog': 'examples/Dog.jpeg',
                   'Tropics': 'examples/Tropics.jpeg'}
-video_examples = {'Traffic': 'examples/Traffic.mp4'}
+video_examples = {'Traffic': 'examples/Traffic.mp4',
+                  'Elephant': 'examples/Elephant.mp4',
+                  'Airport': 'examples/Airport.mp4'}
 
 with st.sidebar:
     page = option_menu(menu_title='Menu',
                        menu_icon="robot",
                        options=["Welcome!",
                                 "Object Detection",
-                                "Classification",
-                                "Semantic Segmentation",
-                                "Captioning"],
+                                "Image Classification",
+                                "Hand Gesture Classification",
+                                "Image Captioning"],
                        icons=["house-door",
                               "search",
                               "check-circle",
-                              "cone-striped",
+                              "hand-thumbs-up",
                               "body-text"],
                        default_index=0,
                        )
+    st.markdown(
+        """
+        <style>
+        [data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
+            width: 350px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 st.title('Open-source Computer Vision')
 
@@ -121,19 +133,18 @@ if page == "Welcome!":
         attention into solving domain specific problems by fine-tuning these model and applying them to business use-cases. 
         This application shows how easy it can be to implement Computer Vision on-demand within your application.   
 
-        Utilizing this tool you will be able to perform a multitude of Computer Vision Tasks on a range of
-        different tasks. All you need to do is select or upload your input, select your task, and hit the start button!
+        Utilizing this tool you will be able to perform a few Computer Vision Tasks. All you need to do is select your task, select or upload your input, and hit the start button!
         
         * This application has the ability to take both Images and Videos as input 
 
         * This application currently supports:
-            * Object Detection
-            * Classification
-            * Semantic Segmentation
-            * Captioning
-            * Question Answering
+            * Image Object Detection
+            * Video Object Detection
+            * Image Classification
+            * Hand Gesture Classification
+            * Image Captioning
 
-        More features may be added in the future including additional Computer Vision tasks, depending on community feedback. 
+        More features may be added in the future including additional Computer Vision tasks and demos, depending on community feedback. 
         Please reach out to me at miesner.jacob@gmail.com or at my Linkedin page listed below if you have ideas or suggestions for improvement.
 
         If you would like to contribute yourself, feel free to fork the Github repository listed below and submit a merge request.
@@ -157,6 +168,7 @@ if page == "Welcome!":
 if page == "Object Detection":
     st.header('Object Detection')
     st.markdown("![Alt Text](https://media.giphy.com/media/vAvWgk3NCFXTa/giphy.gif)")
+    st.write("This object detection app uses a pretrained YOLOv5 model which was trained to recognize the labels contained within the COCO dataset. More info [here](https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/) on the classes this app can detect.")
 
     data_type = st.radio(
         "Select Data Type",
@@ -183,16 +195,13 @@ if page == "Object Detection":
         if input_type == 'Example':
             option = st.selectbox(
                 'Which example would you like to use?',
-                (['Traffic']))
+                (['Traffic',
+                  'Elephant',
+                  'Airport']))
             uploaded_file = video_examples[option]
             vid = uploaded_file
         else:
             uploaded_file = st.file_uploader("Choose a file", type=['mp4'])
-
-        if uploaded_file and input_type == 'Upload':
-            vid = uploaded_file.name
-            with open(vid, mode='wb') as f:
-                f.write(uploaded_file.read())
 
         if st.button('🔥 Run!'):
             if st.button('STOP'):
@@ -200,12 +209,20 @@ if page == "Object Detection":
             if uploaded_file is None:
                 st.error("No file uploaded yet.")
             else:
+                if uploaded_file and input_type == 'Upload':
+                    vid = uploaded_file.name
+                    with open(vid, mode='wb') as f:
+                        f.write(uploaded_file.read())
+
                 with st.spinner("Creating video frames..."):
                     frames, fps = video_object_detection.create_video_frames(vid)
 
                 with st.spinner("Running object detection..."):
                     st.subheader("Object Detection Predictions")
                     video_object_detection.static_vid_obj(frames, fps)
+                    # Delete uploaded video after annotation is complete
+                    if vid:
+                        os.remove(vid)
 
                 video_file=open('outputs/annotated_video.mp4', 'rb')
                 video_bytes = video_file.read()
@@ -213,8 +230,9 @@ if page == "Object Detection":
                     label="Download annotated video",
                     data=video_bytes,
                     file_name='annotated_video.mp4',
-                    mime='video/mp4',
+                    mime='video/mp4'
                 )
+
 
     else:
         input_type = st.radio(
@@ -252,13 +270,9 @@ if page == "Object Detection":
                     st.download_button('Download Predictions', json.dumps(detections), file_name='image_object_detection.json')
 
 
-elif page == 'Classification':
-    st.header('Classification')
+elif page == 'Image Classification':
+    st.header('Image Classification')
     st.markdown("![Alt Text](https://media.giphy.com/media/Zvgb12U8GNjvq/giphy.gif)")
-
-    data_type = st.radio(
-        "Select Data Type",
-        (['Image']))
 
     input_type = st.radio(
         "Use example or upload your own?",
@@ -291,41 +305,25 @@ elif page == 'Classification':
             st.download_button('Download Predictions',csv,
                                file_name='classification_predictions.csv')
 
-elif page == 'Semantic Segmentation':
-    st.header('Semantic Segmentation')
-    st.markdown("![Alt Text](https://media.giphy.com/media/urvsFBDfR6N32/giphy.gif)")
+elif page == 'Hand Gesture Classification':
+    st.header('Hand Gesture Classification')
+    st.markdown("![Alt Text](https://media.giphy.com/media/tIeCLkB8geYtW/giphy.gif)")
+    st.write('This app can classify ten different hand gestures including: Okay, Peace, Thumbs up, Thumbs down, Call me, Stop, Rock on, Star trek, Fist, Smile sign. Try it out!')
+    RTC_CONFIGURATION = RTCConfiguration(
+        {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
+    )
+    webrtc_ctx = webrtc_streamer(
+        key="hand-gesture-classification",
+        mode=WebRtcMode.SENDRECV,
+        rtc_configuration=RTC_CONFIGURATION,
+        video_frame_callback=hand_gesture_classifier.callback,
+        media_stream_constraints={"video": True, "audio": False},
+        async_processing=True,
+    )
 
-    data_type = st.radio(
-        "Select Data Type",
-        (['Image']))
-
-    input_type = st.radio(
-        "Use example or upload your own?",
-        ('Example', 'Upload'))
-
-    if input_type == 'Example':
-        option = st.selectbox(
-            'Which example would you like to use?',
-            ('Home Office', 'Traffic', 'Barbeque', 'Car', 'Dog', 'Tropics'))
-        uploaded_file = image_examples[option]
-    else:
-        uploaded_file = st.file_uploader("Choose a file", type=['jpg', 'jpeg', 'png'])
-
-    if st.button('🔥 Run!'):
-        if uploaded_file is None:
-            st.error("No file uploaded yet.")
-        else:
-            with st.spinner("Running segmentation..."):
-                img = Image.open(uploaded_file)
-                labeled_image, detections = image_segmentation.classify(img)
-
-elif page == 'Captioning':
-    st.header('Captioning')
+elif page == 'Image Captioning':
+    st.header('Image Captioning')
     st.markdown("![Alt Text](https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif)")
-
-    data_type = st.radio(
-        "Select Data Type",
-        (['Image']))
 
     input_type = st.radio(
         "Use example or upload your own?",
@@ -353,5 +351,5 @@ elif page == 'Captioning':
 
                 st.subheader("Captioning Prediction")
                 st.image(img)
-                st.download_button('Download Image', data=byte_im, file_name="image_object_detection.png",
+                st.download_button('Download Image', data=byte_im, file_name="image_captioned.png",
                                    mime="image/jpeg")

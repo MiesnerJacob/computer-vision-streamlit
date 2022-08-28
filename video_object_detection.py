@@ -49,7 +49,7 @@ class VideoObjectDetection:
             count = 0
 
             for xmin, ymin, xmax, ymax, confidence, classes, name in list_boxes:
-                if confidence > .7:
+                if confidence > .45:
                     image_np = cv2.rectangle(image_np, pt1=(int(xmin), int(ymin)), pt2=(int(xmax), int(ymax)), \
                                              color=label_colors[name], thickness=2)
                     cv2.putText(image_np, f"{labels[count]}: {round(scores[count], 2)}", (int(xmin), int(ymin) - 10), font,
