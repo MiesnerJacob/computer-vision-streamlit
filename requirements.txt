@@ -3,4 +3,4 @@ streamlit-webrtc==0.43.2
 timm==0.6.7
 mediapipe==0.8.10.1
 tensorflow==2.9.1
-opencv-python-headless==4.5.3.56
+opencv-python==4.5.5.64
