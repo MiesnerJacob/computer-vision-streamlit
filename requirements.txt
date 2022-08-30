@@ -1,4 +1,4 @@
-opencv-python
+streamlit==1.11.1
 streamlit-option-menu~=0.3.2
 timm==0.6.7
 mediapipe==0.8.10.1
@@ -10,4 +10,7 @@ plotly
 torch
 torchvision
 seaborn
-protobuf==3.19.4
+opencv-python-headless==4.5.5.64
+streamlit_webrtc==0.43.0
+typing_extensions==4.1.1
+protobuf~=3.19.0
