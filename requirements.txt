@@ -6,3 +6,7 @@ streamlit==0.81.1
 streamlit_webrtc==0.20.0
 tensorflow
 transformers
+plotly
+torch
+torchvision
+protobuf==3.19.4
