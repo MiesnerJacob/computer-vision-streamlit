@@ -9,4 +9,5 @@ transformers
 plotly
 torch
 torchvision
+seaborn
 protobuf==3.19.4
