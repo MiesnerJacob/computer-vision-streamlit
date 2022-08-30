@@ -2,7 +2,7 @@ streamlit-option-menu~=0.3.2
 timm==0.6.7
 mediapipe==0.8.10.1
 streamlit==0.81.1
-streamlit_webrtc==0.20.0
+streamlit_webrtc
 tensorflow
 transformers
 plotly
