@@ -5,8 +5,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 class ImageCaptioning:
     def __init__(self):
-        self.model = VisionEncoderDecoderModel.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
-        self.feature_extractor = ViTFeatureExtractor.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
+        self.model = VisionEncoderDecoderModel.from_pretrained("google/vit-base-patch16-224-in21k")
+        self.feature_extractor = ViTFeatureExtractor.from_pretrained("google/vit-base-patch16-224-in21k")
         self.tokenizer = AutoTokenizer.from_pretrained("nlpconnect/vit-gpt2-image-captioning")
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
