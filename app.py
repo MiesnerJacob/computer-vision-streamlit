@@ -42,16 +42,14 @@ def load_image_classifier():
 def load_hand_gesture_classifier():
     return HandGestureClassification()
 
-# @st.cache(allow_output_mutation=True)
-# def load_image_captioning():
-#     return ImageCaptioning()
+def load_image_captioning():
+    return ImageCaptioning()
 
 
 video_object_detection = load_video_object_detection()
 image_object_detection = load_image_object_detection()
 image_classifier = load_image_classifier()
 hand_gesture_classifier = load_hand_gesture_classifier()
-# image_captioning = load_image_captioning()
 
 image_examples = {'Traffic': 'examples/Traffic.jpeg',
                   'Barbeque': 'examples/Barbeque.jpeg',
@@ -322,6 +320,7 @@ elif page == 'Hand Gesture Classification':
     )
 
 elif page == 'Image Captioning':
+    image_captioning = load_image_captioning()
     st.header('Image Captioning')
     st.markdown("![Alt Text](https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif)")
 
