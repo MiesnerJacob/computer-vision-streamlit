@@ -5,8 +5,8 @@ from object_detection_utils import *
 
 class ImageObjectDetection:
     def __init__(self):
-        self.feature_extractor = DetrFeatureExtractor.from_pretrained('facebook/detr-resnet-101')
-        self.model = DetrForObjectDetection.from_pretrained('facebook/detr-resnet-101')
+        self.feature_extractor = DetrFeatureExtractor.from_pretrained('facebook/detr-resnet-50')
+        self.model = DetrForObjectDetection.from_pretrained('facebook/detr-resnet-50')
 
     def classify(self, image):
         inputs = self.feature_extractor(images=image, return_tensors="pt")

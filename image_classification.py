@@ -1,4 +1,4 @@
-from transformers import ViTFeatureExtractor, ViTForImageClassification
+from transformers import AutoFeatureExtractor, ResNetForImageClassification
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -7,8 +7,8 @@ from torch.nn import Softmax as softmax
 
 class ImageClassification:
     def __init__(self):
-        self.feature_extractor = ViTFeatureExtractor.from_pretrained('google/vit-base-patch16-224')
-        self.model = ViTForImageClassification.from_pretrained('google/vit-base-patch16-224')
+        self.feature_extractor = AutoFeatureExtractor.from_pretrained("microsoft/resnet-50")
+        self.model = ResNetForImageClassification.from_pretrained("microsoft/resnet-50")
 
     def classify(self, image):
         inputs = self.feature_extractor(images=image, return_tensors="pt")
