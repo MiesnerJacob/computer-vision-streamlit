@@ -26,23 +26,28 @@ hide_streamlit_style = """
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-@st.cache(allow_output_mutation=True)
+@st.cache(allow_output_mutation=True,
+          hash_funcs={"MyUnhashableClass": lambda _: None})
 def load_video_object_detection():
     return VideoObjectDetection()
 
-@st.cache(allow_output_mutation=True)
+@st.cache(allow_output_mutation=True,
+          hash_funcs={"MyUnhashableClass": lambda _: None})
 def load_image_object_detection():
     return ImageObjectDetection()
 
-@st.cache(allow_output_mutation=True)
+@st.cache(allow_output_mutation=True,
+          hash_funcs={"MyUnhashableClass": lambda _: None})
 def load_image_classifier():
     return ImageClassification()
 
-@st.cache(allow_output_mutation=True)
+@st.cache(allow_output_mutation=True,
+          hash_funcs={"MyUnhashableClass": lambda _: None})
 def load_hand_gesture_classifier():
     return HandGestureClassification()
 
-@st.cache(allow_output_mutation=True)
+@st.cache(allow_output_mutation=True,
+          hash_funcs={"MyUnhashableClass": lambda _: None})
 def load_image_captioning():
     return ImageCaptioning()
 
