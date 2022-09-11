@@ -3,20 +3,25 @@ from streamlit_option_menu import option_menu
 from video_object_detection import VideoObjectDetection
 from image_object_detection import ImageObjectDetection
 from image_classification import ImageClassification
+from facial_emotion_recognition import FacialEmotionRecognition
 from hand_gesture_classification import HandGestureClassification
 from image_captioning import ImageCaptioning
+from image_optical_character_recgonition import ImageOpticalCharacterRecognition
 import plotly.express as px
 from PIL import Image
 from io import BytesIO
 import base64
 import json
 import os
+import cv2
 from streamlit_webrtc import (
     RTCConfiguration,
     WebRtcMode,
     WebRtcStreamerContext,
     webrtc_streamer,
 )
+import warnings
+warnings.filterwarnings("ignore")
 
 hide_streamlit_style = """
             <style>
@@ -26,44 +31,52 @@ hide_streamlit_style = """
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-@st.cache(allow_output_mutation=True,
-          hash_funcs={"MyUnhashableClass": lambda _: None})
-def load_video_object_detection():
-    return VideoObjectDetection()
+# @st.cache(allow_output_mutation=True)
+# def load_video_object_detection():
+#     return VideoObjectDetection()
+#
+# @st.cache(allow_output_mutation=True)
+# def load_image_object_detection():
+#     return ImageObjectDetection()
+#
+# @st.cache(allow_output_mutation=True)
+# def load_image_classifier():
+#     return ImageClassification()
+#
+@st.cache(allow_output_mutation=True)
+def load_facial_emotion_classifier():
+    return FacialEmotionRecognition()
+#
+# @st.cache(allow_output_mutation=True)
+# def load_hand_gesture_classifier():
+#     return HandGestureClassification()
 
-@st.cache(allow_output_mutation=True,
-          hash_funcs={"MyUnhashableClass": lambda _: None})
-def load_image_object_detection():
-    return ImageObjectDetection()
-
-@st.cache(allow_output_mutation=True,
-          hash_funcs={"MyUnhashableClass": lambda _: None})
-def load_image_classifier():
-    return ImageClassification()
-
-@st.cache(allow_output_mutation=True,
-          hash_funcs={"MyUnhashableClass": lambda _: None})
-def load_hand_gesture_classifier():
-    return HandGestureClassification()
-
-@st.cache(allow_output_mutation=True,
-          hash_funcs={"MyUnhashableClass": lambda _: None})
-def load_image_captioning():
-    return ImageCaptioning()
+# @st.cache(allow_output_mutation=True)
+# def load_image_captioning():
+#     return ImageCaptioning()
+#
+# @st.cache(allow_output_mutation=True)
+# def load_image_optical_character_recognition():
+#     return ImageOpticalCharacterRecognition()
 
 
-video_object_detection = load_video_object_detection()
-image_object_detection = load_image_object_detection()
-image_classifier = load_image_classifier()
-hand_gesture_classifier = load_hand_gesture_classifier()
-image_captioning = load_image_captioning()
+# video_object_detection = load_video_object_detection()
+# image_object_detection = load_image_object_detection()
+# image_classifier = load_image_classifier()
+facial_emotion_classifier = load_facial_emotion_classifier()
+# hand_gesture_classifier = load_hand_gesture_classifier()
+# image_captioning = load_image_captioning()
+# image_optical_character_recognition = load_image_optical_character_recognition()
 
 image_examples = {'Traffic': 'examples/Traffic.jpeg',
                   'Barbeque': 'examples/Barbeque.jpeg',
                   'Home Office': 'examples/Home Office.jpeg',
                   'Car': 'examples/Car.jpeg',
                   'Dog': 'examples/Dog.jpeg',
-                  'Tropics': 'examples/Tropics.jpeg'}
+                  'Tropics': 'examples/Tropics.jpeg',
+                  'Quick Brown Dog': 'examples/Quick Brown Dog.png',
+                  'Receipt': 'examples/Receipt.png',
+                  'Street Sign': 'examples/Street Sign.jpeg'}
 video_examples = {'Traffic': 'examples/Traffic.mp4',
                   'Elephant': 'examples/Elephant.mp4',
                   'Airport': 'examples/Airport.mp4'}
@@ -74,20 +87,24 @@ with st.sidebar:
                        options=["Welcome!",
                                 "Object Detection",
                                 "Image Classification",
+                                "Facial Emotion Recognition",
                                 "Hand Gesture Classification",
-                                "Image Captioning"],
+                                "Image Captioning",
+                                "Optical Character Recognition"],
                        icons=["house-door",
                               "search",
                               "check-circle",
+                              "emoji-smile",
                               "hand-thumbs-up",
-                              "body-text"],
+                              "body-text",
+                              "eyeglasses"],
                        default_index=0,
                        )
     st.markdown(
         """
         <style>
         [data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
-            width: 350px;
+            width: 375px;
         }
         </style>
         """,
@@ -238,7 +255,6 @@ if page == "Object Detection":
                     mime='video/mp4'
                 )
 
-
     else:
         input_type = st.radio(
             "Use example or upload your own?",
@@ -310,10 +326,119 @@ elif page == 'Image Classification':
             st.download_button('Download Predictions',csv,
                                file_name='classification_predictions.csv')
 
+elif page == 'Facial Emotion Recognition':
+
+    st.header('Facial Emotion Recognition')
+    st.markdown("![Alt Text](https://media.giphy.com/media/bnhtSlVeo7BxC/giphy.gif)")
+    st.write('This app can classify seven different emotions including: Neutral, Happiness, Surprise, Sadness, Anger, Disgust, and Fear. Try it out!')
+
+    data_type = st.radio(
+        "Select Data Type",
+        ('Webcam', 'Video', 'Image'))
+
+    if data_type == 'Webcam':
+
+        RTC_CONFIGURATION = RTCConfiguration(
+            {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
+        )
+        webrtc_ctx = webrtc_streamer(
+            key="facial-emotion-recognition",
+            mode=WebRtcMode.SENDRECV,
+            rtc_configuration=RTC_CONFIGURATION,
+            video_frame_callback=facial_emotion_classifier.callback,
+            media_stream_constraints={"video": True, "audio": False},
+            async_processing=True,
+        )
+
+    elif data_type == 'Video':
+        input_type = st.radio(
+            "Use example or upload your own?",
+            ('Example', 'Upload'))
+
+        if input_type == 'Example':
+            option = st.selectbox(
+                'Which example would you like to use?',
+                (['Traffic',
+                  'Elephant',
+                  'Airport']))
+            uploaded_file = video_examples[option]
+            vid = uploaded_file
+        else:
+            uploaded_file = st.file_uploader("Choose a file", type=['mp4'])
+
+        if st.button('🔥 Run!'):
+            if st.button('STOP'):
+                pass
+            if uploaded_file is None:
+                st.error("No file uploaded yet.")
+            else:
+                if uploaded_file and input_type == 'Upload':
+                    vid = uploaded_file.name
+                    with open(vid, mode='wb') as f:
+                        f.write(uploaded_file.read())
+
+                with st.spinner("Creating video frames..."):
+                    frames, fps = facial_emotion_classifier.create_video_frames(vid)
+
+                with st.spinner("Running object detection..."):
+                    st.subheader("Object Detection Predictions")
+                    facial_emotion_classifier.static_vid_fer(frames, fps)
+                    # Delete uploaded video after annotation is complete
+                    if vid:
+                        os.remove(vid)
+
+                video_file=open('outputs/annotated_video.mp4', 'rb')
+                video_bytes = video_file.read()
+                st.download_button(
+                    label="Download annotated video",
+                    data=video_bytes,
+                    file_name='annotated_video.mp4',
+                    mime='video/mp4'
+                )
+    else:
+        input_type = st.radio(
+            "Use example or upload your own?",
+            ('Example', 'Upload'))
+
+        if input_type == 'Example':
+            option = st.selectbox(
+                'Which example would you like to use?',
+                ('Home Office', 'Traffic', 'Barbeque'))
+            uploaded_file = image_examples[option]
+        else:
+            uploaded_file = st.file_uploader("Choose a file", type=['jpg', 'jpeg', 'png'])
+
+        if st.button('🔥 Run!'):
+            if uploaded_file is None:
+                st.error("No file uploaded yet.")
+            else:
+                with st.spinner("Running object detection..."):
+                    img = cv2.imread(uploaded_file)
+                    # Convert to rgb
+                    img = img[..., ::-1]
+                    labeled_image, detections = facial_emotion_classifier.prediction_label(img)
+
+                if labeled_image is not None and detections is not None:
+                    # Create image buffer and download
+                    buf = BytesIO()
+                    labeled_image.save(buf, format="PNG")
+                    byte_im = buf.getvalue()
+
+                    st.subheader("Object Detection Predictions")
+                    st.image(labeled_image)
+                    st.download_button('Download Image', data=byte_im,file_name="image_object_detection.png", mime="image/jpeg")
+
+                    # Create json and download button
+                    st.json(detections)
+                    st.download_button('Download Predictions', json.dumps(detections), file_name='image_object_detection.json')
+                else:
+                    st.image(img)
+                    st.warning('No faces recognized in this image...')
+
 elif page == 'Hand Gesture Classification':
     st.header('Hand Gesture Classification')
     st.markdown("![Alt Text](https://media.giphy.com/media/tIeCLkB8geYtW/giphy.gif)")
-    st.write('This app can classify ten different hand gestures including: Okay, Peace, Thumbs up, Thumbs down, Call me, Stop, Rock on, Star trek, Fist, Smile sign. Try it out!')
+    st.write('This app can classify ten different hand gestures including: Okay, Peace, Thumbs Up, Thumbs Down, Hang Loose, Stop, Rock On, Star Trek, Fist, Smile Sign. Try it out!')
     RTC_CONFIGURATION = RTCConfiguration(
         {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
     )
@@ -358,3 +483,37 @@ elif page == 'Image Captioning':
                 st.image(img)
                 st.download_button('Download Image', data=byte_im, file_name="image_captioned.png",
                                    mime="image/jpeg")
+
+elif page == 'Optical Character Recognition':
+    st.header('Image Optical Character Recognition')
+    st.markdown("![Alt Text](https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif)")
+
+    input_type = st.radio(
+        "Use example or upload your own?",
+        ('Example', 'Upload'))
+
+    if input_type == 'Example':
+        option = st.selectbox(
+            'Which example would you like to use?',
+            ('Quick Brown Dog', 'Receipt', 'Street Sign'))
+        uploaded_file = image_examples[option]
+    else:
+        uploaded_file = st.file_uploader("Choose a file", type=['jpg', 'jpeg', 'png'])
+
+    if st.button('🔥 Run!'):
+        with st.spinner("Running optical character recognition..."):
+            annotated_image, text = image_optical_character_recognition.image_ocr(uploaded_file)
+
+        # Create image buffer and download
+        buf = BytesIO()
+        annotated_image.save(buf, format="PNG")
+        byte_im = buf.getvalue()
+
+        st.subheader("Captioning Prediction")
+        st.image(annotated_image)
+        if text == '':
+            st.wite("No text in this image...")
+        else:
+            st.write(text)
+
+            st.download_button('Download Text', data=text, file_name='outputs/ocr_pred.txt')
