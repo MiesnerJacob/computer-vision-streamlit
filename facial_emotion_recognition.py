@@ -61,7 +61,7 @@ class FacialEmotionRecognition:
 
             output_image= cv2.rectangle(output_image, pt1=(int(xmin), int(ymin)), pt2=(int(xmax), int(ymax)), \
                                      color=self.label_colors[class_pred], thickness=2)
-            cv2.putText(output_image, f"{class_pred}: {str(class_prob)}", (int(xmin), int(ymin) - 75), font,
+            cv2.putText(output_image, f"{class_pred}: {str(class_prob)}", (int(xmin) - 20, int(ymin) - 20), font,
                         fontScale, self.label_colors[class_pred], thickness, cv2.LINE_AA)
 
             return output_image, dict(emotions)

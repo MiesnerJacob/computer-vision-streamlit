@@ -14,6 +14,7 @@ import base64
 import json
 import os
 import cv2
+import numpy as np
 from streamlit_webrtc import (
     RTCConfiguration,
     WebRtcMode,
@@ -76,10 +77,16 @@ image_examples = {'Traffic': 'examples/Traffic.jpeg',
                   'Tropics': 'examples/Tropics.jpeg',
                   'Quick Brown Dog': 'examples/Quick Brown Dog.png',
                   'Receipt': 'examples/Receipt.png',
-                  'Street Sign': 'examples/Street Sign.jpeg'}
+                  'Street Sign': 'examples/Street Sign.jpeg',
+                  'Kanye': 'examples/Kanye.png',
+                  'Shocked': 'examples/Shocked.png',
+                  'Yelling': 'examples/Yelling.jpeg'}
 video_examples = {'Traffic': 'examples/Traffic.mp4',
                   'Elephant': 'examples/Elephant.mp4',
-                  'Airport': 'examples/Airport.mp4'}
+                  'Airport': 'examples/Airport.mp4',
+                  'Kanye': 'examples/Kanye.mp4',
+                  'Laughing Guy': 'examples/Laughing Guy.mp4',
+                  'Parks and Recreation': 'examples/Parks and Recreation.mp4'}
 
 with st.sidebar:
     page = option_menu(menu_title='Menu',
@@ -242,9 +249,10 @@ if page == "Object Detection":
                 with st.spinner("Running object detection..."):
                     st.subheader("Object Detection Predictions")
                     video_object_detection.static_vid_obj(frames, fps)
-                    # Delete uploaded video after annotation is complete
-                    if vid:
-                        os.remove(vid)
+                    if input_type == 'Upload':
+                        # Delete uploaded video after annotation is complete
+                        if vid:
+                            os.remove(vid)
 
                 video_file=open('outputs/annotated_video.mp4', 'rb')
                 video_bytes = video_file.read()
@@ -358,9 +366,9 @@ elif page == 'Facial Emotion Recognition':
         if input_type == 'Example':
             option = st.selectbox(
                 'Which example would you like to use?',
-                (['Traffic',
-                  'Elephant',
-                  'Airport']))
+                (['Kanye',
+                  'Laughing Guy',
+                  'Parks and Recreation']))
             uploaded_file = video_examples[option]
             vid = uploaded_file
         else:
@@ -380,12 +388,13 @@ elif page == 'Facial Emotion Recognition':
                 with st.spinner("Creating video frames..."):
                     frames, fps = facial_emotion_classifier.create_video_frames(vid)
 
-                with st.spinner("Running object detection..."):
-                    st.subheader("Object Detection Predictions")
+                with st.spinner("Running emotion recognition..."):
+                    st.subheader("Emotion Recognition Predictions")
                     facial_emotion_classifier.static_vid_fer(frames, fps)
-                    # Delete uploaded video after annotation is complete
-                    if vid:
-                        os.remove(vid)
+                    if input_type == 'Upload':
+                        # Delete uploaded video after annotation is complete
+                        if vid:
+                            os.remove(vid)
 
                 video_file=open('outputs/annotated_video.mp4', 'rb')
                 video_bytes = video_file.read()
@@ -403,7 +412,7 @@ elif page == 'Facial Emotion Recognition':
         if input_type == 'Example':
             option = st.selectbox(
                 'Which example would you like to use?',
-                ('Home Office', 'Traffic', 'Barbeque'))
+                ('Kanye', 'Shocked', 'Yelling'))
             uploaded_file = image_examples[option]
         else:
             uploaded_file = st.file_uploader("Choose a file", type=['jpg', 'jpeg', 'png'])
@@ -412,11 +421,13 @@ elif page == 'Facial Emotion Recognition':
             if uploaded_file is None:
                 st.error("No file uploaded yet.")
             else:
-                with st.spinner("Running object detection..."):
+                with st.spinner("Running emotion recognition..."):
                     img = cv2.imread(uploaded_file)
-                    # Convert to rgb
-                    img = img[..., ::-1]
+
                     labeled_image, detections = facial_emotion_classifier.prediction_label(img)
+                    labeled_image = labeled_image[..., ::-1]
+                    labeled_image = Image.fromarray(np.uint8(labeled_image))
+
 
                 if labeled_image is not None and detections is not None:
                     # Create image buffer and download
@@ -424,13 +435,13 @@ elif page == 'Facial Emotion Recognition':
                     labeled_image.save(buf, format="PNG")
                     byte_im = buf.getvalue()
 
-                    st.subheader("Object Detection Predictions")
+                    st.subheader("Emotion Recognition Predictions")
                     st.image(labeled_image)
-                    st.download_button('Download Image', data=byte_im,file_name="image_object_detection.png", mime="image/jpeg")
+                    st.download_button('Download Image', data=byte_im,file_name="image_emotion_recognition.png", mime="image/jpeg")
 
                     # Create json and download button
                     st.json(detections)
-                    st.download_button('Download Predictions', json.dumps(detections), file_name='image_object_detection.json')
+                    st.download_button('Download Predictions', json.dumps(str(detections)), file_name='image_emotion_recognition.json')
                 else:
                     st.image(img)
                     st.warning('No faces recognized in this image...')
