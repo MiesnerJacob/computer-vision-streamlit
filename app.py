@@ -2,10 +2,10 @@ import streamlit as st
 from streamlit_option_menu import option_menu
 from video_object_detection import VideoObjectDetection
 from image_object_detection import ImageObjectDetection
-from image_classification import ImageClassification
 from facial_emotion_recognition import FacialEmotionRecognition
 from hand_gesture_classification import HandGestureClassification
 from image_optical_character_recgonition import ImageOpticalCharacterRecognition
+from image_classification import ImageClassification
 import plotly.express as px
 from PIL import Image
 from io import BytesIO
@@ -20,9 +20,13 @@ from streamlit_webrtc import (
     WebRtcStreamerContext,
     webrtc_streamer,
 )
+
+# Hide warnings to make it easier to locate
+# errors in logs, should they show up
 import warnings
 warnings.filterwarnings("ignore")
 
+# Hide Streamlit logo
 hide_streamlit_style = """
             <style>
             #MainMenu {visibility: hidden;}
@@ -31,6 +35,10 @@ hide_streamlit_style = """
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
+# Make Radio buttons horizontal
+st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
+
+# Functions to load models
 @st.cache(allow_output_mutation=True)
 def load_video_object_detection():
     return VideoObjectDetection()
@@ -56,13 +64,15 @@ def load_image_optical_character_recognition():
     return ImageOpticalCharacterRecognition()
 
 
+# Load models and store in cache
 video_object_detection = load_video_object_detection()
 image_object_detection = load_image_object_detection()
-image_classifier = load_image_classifier()
 facial_emotion_classifier = load_facial_emotion_classifier()
 hand_gesture_classifier = load_hand_gesture_classifier()
 image_optical_character_recognition = load_image_optical_character_recognition()
+image_classifier = load_image_classifier()
 
+# Paths for image examples
 image_examples = {'Traffic': 'examples/Traffic.jpeg',
                   'Barbeque': 'examples/Barbeque.jpeg',
                   'Home Office': 'examples/Home Office.jpeg',
@@ -75,6 +85,8 @@ image_examples = {'Traffic': 'examples/Traffic.jpeg',
                   'Kanye': 'examples/Kanye.png',
                   'Shocked': 'examples/Shocked.png',
                   'Yelling': 'examples/Yelling.jpeg'}
+
+# Paths for video examples
 video_examples = {'Traffic': 'examples/Traffic.mp4',
                   'Elephant': 'examples/Elephant.mp4',
                   'Airport': 'examples/Airport.mp4',
@@ -82,23 +94,26 @@ video_examples = {'Traffic': 'examples/Traffic.mp4',
                   'Laughing Guy': 'examples/Laughing Guy.mp4',
                   'Parks and Recreation': 'examples/Parks and Recreation.mp4'}
 
+# Create streamlit sidebar with options for different tasks
 with st.sidebar:
     page = option_menu(menu_title='Menu',
                        menu_icon="robot",
                        options=["Welcome!",
                                 "Object Detection",
-                                "Image Classification",
                                 "Facial Emotion Recognition",
                                 "Hand Gesture Classification",
-                                "Optical Character Recognition"],
+                                "Optical Character Recognition",
+                                "Image Classification"],
                        icons=["house-door",
                               "search",
-                              "check-circle",
                               "emoji-smile",
                               "hand-thumbs-up",
-                              "eyeglasses"],
+                              "eyeglasses",
+                              "check-circle"],
                        default_index=0,
                        )
+
+    # Make sidebar slightly larger to accommodate larger names
     st.markdown(
         """
         <style>
@@ -110,10 +125,8 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-st.title('Open-source Computer Vision')
 
-# Make Radio button horizontal
-st.write('<style>div.row-widget.stRadio > div{flex-direction:row;}</style>', unsafe_allow_html=True)
+st.title('Open-source Computer Vision')
 
 # Load and display local gif file
 file_ = open("resources/camera-robot-eye.gif", "rb")
@@ -121,6 +134,7 @@ contents = file_.read()
 data_url = base64.b64encode(contents).decode("utf-8")
 file_.close()
 
+# Page Definitions
 if page == "Welcome!":
     st.header('Welcome!')
     st.markdown(
@@ -187,6 +201,7 @@ if page == "Welcome!":
     )
 
 if page == "Object Detection":
+
     st.header('Object Detection')
     st.markdown("![Alt Text](https://media.giphy.com/media/vAvWgk3NCFXTa/giphy.gif)")
     st.write("This object detection app uses a pretrained YOLOv5 model which was trained to recognize the labels contained within the COCO dataset. More info [here](https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/) on the classes this app can detect.")
@@ -254,8 +269,7 @@ if page == "Object Detection":
                     file_name='annotated_video.mp4',
                     mime='video/mp4'
                 )
-
-    else:
+    elif data_type == 'Image':
         input_type = st.radio(
             "Use example or upload your own?",
             ('Example', 'Upload'))
@@ -289,42 +303,6 @@ if page == "Object Detection":
                     # Create json and download button
                     st.json(detections)
                     st.download_button('Download Predictions', json.dumps(detections), file_name='image_object_detection.json')
-
-
-elif page == 'Image Classification':
-    st.header('Image Classification')
-    st.markdown("![Alt Text](https://media.giphy.com/media/Zvgb12U8GNjvq/giphy.gif)")
-
-    input_type = st.radio(
-        "Use example or upload your own?",
-        ('Example', 'Upload'))
-
-    if input_type == 'Example':
-        option = st.selectbox(
-            'Which example would you like to use?',
-            ('Car', 'Dog', 'Tropics'))
-        uploaded_file = image_examples[option]
-    else:
-        uploaded_file = st.file_uploader("Choose a file", type=['jpg', 'jpeg', 'png'])
-
-    if st.button('🔥 Run!'):
-        if uploaded_file is None:
-            st.error("No file uploaded yet.")
-        else:
-            with st.spinner("Running classification..."):
-                img = Image.open(uploaded_file)
-                preds = image_classifier.classify(img)
-
-            st.write("")
-            st.subheader("Classification Predictions")
-            st.image(img)
-            fig = px.bar(preds.sort_values("Pred_Prob", ascending=True), x='Pred_Prob', y='Class', orientation='h')
-            st.write(fig)
-
-            st.write("")
-            csv = preds.to_csv(index=False).encode('utf-8')
-            st.download_button('Download Predictions',csv,
-                               file_name='classification_predictions.csv')
 
 elif page == 'Facial Emotion Recognition':
 
@@ -396,7 +374,7 @@ elif page == 'Facial Emotion Recognition':
                     file_name='annotated_video.mp4',
                     mime='video/mp4'
                 )
-    else:
+    elif data_type == 'Image':
         input_type = st.radio(
             "Use example or upload your own?",
             ('Example', 'Upload'))
@@ -439,6 +417,7 @@ elif page == 'Facial Emotion Recognition':
                     st.warning('No faces recognized in this image...')
 
 elif page == 'Hand Gesture Classification':
+
     st.header('Hand Gesture Classification')
     st.markdown("![Alt Text](https://media.giphy.com/media/tIeCLkB8geYtW/giphy.gif)")
     st.write('This app can classify ten different hand gestures including: Okay, Peace, Thumbs Up, Thumbs Down, Hang Loose, Stop, Rock On, Star Trek, Fist, Smile Sign. Try it out!')
@@ -455,6 +434,7 @@ elif page == 'Hand Gesture Classification':
     )
 
 elif page == 'Optical Character Recognition':
+
     st.header('Image Optical Character Recognition')
     st.markdown("![Alt Text](https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif)")
 
@@ -487,3 +467,39 @@ elif page == 'Optical Character Recognition':
             st.write(text)
 
             st.download_button('Download Text', data=text, file_name='outputs/ocr_pred.txt')
+
+elif page == 'Image Classification':
+
+    st.header('Image Classification')
+    st.markdown("![Alt Text](https://media.giphy.com/media/Zvgb12U8GNjvq/giphy.gif)")
+
+    input_type = st.radio(
+        "Use example or upload your own?",
+        ('Example', 'Upload'))
+
+    if input_type == 'Example':
+        option = st.selectbox(
+            'Which example would you like to use?',
+            ('Car', 'Dog', 'Tropics'))
+        uploaded_file = image_examples[option]
+    else:
+        uploaded_file = st.file_uploader("Choose a file", type=['jpg', 'jpeg', 'png'])
+
+    if st.button('🔥 Run!'):
+        if uploaded_file is None:
+            st.error("No file uploaded yet.")
+        else:
+            with st.spinner("Running classification..."):
+                img = Image.open(uploaded_file)
+                preds = image_classifier.classify(img)
+
+            st.write("")
+            st.subheader("Classification Predictions")
+            st.image(img)
+            fig = px.bar(preds.sort_values("Pred_Prob", ascending=True), x='Pred_Prob', y='Class', orientation='h')
+            st.write(fig)
+
+            st.write("")
+            csv = preds.to_csv(index=False).encode('utf-8')
+            st.download_button('Download Predictions',csv,
+                               file_name='classification_predictions.csv')
