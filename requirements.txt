@@ -9,7 +9,7 @@ plotly
 torch
 torchvision
 seaborn
-opencv-python==4.5.5.64
+opencv-python-headless
 typing_extensions
 protobuf
 fer-pytorch
