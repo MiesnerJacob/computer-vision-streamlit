@@ -8,30 +8,6 @@ class VideoObjectDetection:
     def __init__(self):
         self.model = torch.hub.load('ultralytics/yolov5', 'yolov5s', pretrained=True)
 
-    @staticmethod
-    def create_video_frames(video_path):
-        cap = cv2.VideoCapture(video_path)
-
-        # Find OpenCV version
-        (major_ver, minor_ver, subminor_ver) = (cv2.__version__).split('.')
-
-        if int(major_ver) < 3:
-            fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)
-        else:
-            fps = cap.get(cv2.CAP_PROP_FPS)
-
-        frames = []
-        try:
-            while True:
-                ret, frame = cap.read()
-                if not ret:
-                    break
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                frames.append(frame)
-        finally:
-            cap.release()
-        return frames, fps
-
     def prediction_label(self, image_np):
             results = self.model(image_np)
             df_result = results.pandas().xyxy[0]
@@ -49,10 +25,11 @@ class VideoObjectDetection:
             count = 0
 
             for xmin, ymin, xmax, ymax, confidence, classes, name in list_boxes:
+                name = name.title()
                 if confidence > .45:
                     image_np = cv2.rectangle(image_np, pt1=(int(xmin), int(ymin)), pt2=(int(xmax), int(ymax)), \
                                              color=label_colors[name], thickness=2)
-                    cv2.putText(image_np, f"{labels[count]}: {round(scores[count], 2)}", (int(xmin), int(ymin) - 10), font,
+                    cv2.putText(image_np, f"{str(labels[count]).title()}: {round(scores[count], 2)}", (int(xmin), int(ymin) - 10), font,
                                 fontScale, label_colors[name], thickness, cv2.LINE_AA)
                 count = count + 1
 

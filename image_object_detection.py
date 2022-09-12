@@ -4,11 +4,33 @@ from object_detection_utils import *
 
 
 class ImageObjectDetection:
+    """
+    XXXXX.
+    """
+
     def __init__(self):
+        """
+        The constructor for XXX class.
+        Attributes:
+            xxx: ___
+            xxx: ___
+            xxx: ___
+        """
+
         self.feature_extractor = DetrFeatureExtractor.from_pretrained('facebook/detr-resnet-50')
         self.model = DetrForObjectDetection.from_pretrained('facebook/detr-resnet-50')
 
     def classify(self, image):
+        """
+        XXX.
+
+        Parameters:
+            xxx (type): ___
+        Returns:
+            xxx (type): ___
+        """
+
+        # Extract features and perform inference
         inputs = self.feature_extractor(images=image, return_tensors="pt")
         outputs = self.model(**inputs)
 

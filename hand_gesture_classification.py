@@ -6,7 +6,19 @@ import av
 
 
 class HandGestureClassification:
+    """
+    XXXXX.
+    """
+
     def __init__(self):
+        """
+        The constructor for XXX class.
+        Attributes:
+            xxx: ___
+            xxx: ___
+            xxx: ___
+        """
+
         # initialize mediapipe
         self.mpHands = mp.solutions.hands
         self.hands = self.mpHands.Hands(max_num_hands=1, min_detection_confidence=0.7)
@@ -21,6 +33,15 @@ class HandGestureClassification:
         f.close()
 
     def gesture_classification(self, frame):
+        """
+        XXX.
+
+        Parameters:
+            xxx (type): ___
+        Returns:
+            xxx (type): ___
+        """
+
         x, y, c = frame.shape
 
         # Flip the frame vertically
@@ -30,8 +51,6 @@ class HandGestureClassification:
         # Get hand landmark prediction
         result = self.hands.process(framergb)
 
-        # print(result)
-
         className = ''
 
         # post process the result
@@ -39,7 +58,6 @@ class HandGestureClassification:
             landmarks = []
             for handslms in result.multi_hand_landmarks:
                 for lm in handslms.landmark:
-                    # print(id, lm)
                     lmx = int(lm.x * x)
                     lmy = int(lm.y * y)
 
@@ -74,6 +92,15 @@ class HandGestureClassification:
         return frame
 
     def callback(self, frame: av.VideoFrame) -> av.VideoFrame:
+        """
+        XXX.
+
+        Parameters:
+            xxx (type): ___
+        Returns:
+            xxx (type): ___
+        """
+
         image = frame.to_ndarray(format="bgr24")
         annotated_image = self.gesture_classification(image)
 

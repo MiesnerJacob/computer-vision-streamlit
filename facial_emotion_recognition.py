@@ -4,11 +4,23 @@ from fer_pytorch.fer import FER
 import av
 
 class FacialEmotionRecognition:
+    """
+    XXXXX.
+    """
+
     def __init__(self):
+        """
+        The constructor for XXX class.
+        Attributes:
+            xxx: ___
+            xxx: ___
+            xxx: ___
+        """
+
         self.fer = FER()
         self.fer.get_pretrained_model("resnet34")
         self.label_colors = {
-            'Neutral': (5, 5, 5),
+            'Neutral': (245, 114, 66),
             'Happiness': (5, 245, 5),
             'Surprise': (18, 255, 215),
             'Sadness': (245, 5, 49),
@@ -17,31 +29,16 @@ class FacialEmotionRecognition:
             'Fear': (205, 245, 5)
         }
 
-    @staticmethod
-    def create_video_frames(video_path):
-        cap = cv2.VideoCapture(video_path)
-
-        # Find OpenCV version
-        (major_ver, minor_ver, subminor_ver) = (cv2.__version__).split('.')
-
-        if int(major_ver) < 3:
-            fps = cap.get(cv2.cv.CV_CAP_PROP_FPS)
-        else:
-            fps = cap.get(cv2.CAP_PROP_FPS)
-
-        frames = []
-        try:
-            while True:
-                ret, frame = cap.read()
-                if not ret:
-                    break
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                frames.append(frame)
-        finally:
-            cap.release()
-        return frames, fps
-
     def prediction_label(self, image_np):
+        """
+        XXX.
+
+        Parameters:
+            xxx (type): ___
+        Returns:
+            xxx (type): ___
+        """
+
         output_image = image_np.copy()
         results_raw = self.fer.predict_image(image_np)
 
@@ -67,6 +64,15 @@ class FacialEmotionRecognition:
             return output_image, dict(emotions)
 
     def static_vid_fer(self, frames, fps):
+        """
+        XXX.
+
+        Parameters:
+            xxx (type): ___
+        Returns:
+            xxx (type): ___
+        """
+
         image_container = st.empty()
 
         # Set video
@@ -85,6 +91,15 @@ class FacialEmotionRecognition:
         video.release()
 
     def callback(self, frame: av.VideoFrame) -> av.VideoFrame:
+        """
+        XXX.
+
+        Parameters:
+            xxx (type): ___
+        Returns:
+            xxx (type): ___
+        """
+
         image = frame.to_ndarray(format="bgr24")
         annotated_image, raw_preds = self.prediction_label(image)
 

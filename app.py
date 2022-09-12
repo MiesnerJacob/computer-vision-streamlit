@@ -6,6 +6,7 @@ from facial_emotion_recognition import FacialEmotionRecognition
 from hand_gesture_classification import HandGestureClassification
 from image_optical_character_recgonition import ImageOpticalCharacterRecognition
 from image_classification import ImageClassification
+from video_utils import create_video_frames
 import plotly.express as px
 from PIL import Image
 from io import BytesIO
@@ -251,7 +252,7 @@ if page == "Object Detection":
                         f.write(uploaded_file.read())
 
                 with st.spinner("Creating video frames..."):
-                    frames, fps = video_object_detection.create_video_frames(vid)
+                    frames, fps = create_video_frames(vid)
 
                 with st.spinner("Running object detection..."):
                     st.subheader("Object Detection Predictions")
@@ -356,7 +357,7 @@ elif page == 'Facial Emotion Recognition':
                         f.write(uploaded_file.read())
 
                 with st.spinner("Creating video frames..."):
-                    frames, fps = facial_emotion_classifier.create_video_frames(vid)
+                    frames, fps = create_video_frames(vid)
 
                 with st.spinner("Running emotion recognition..."):
                     st.subheader("Emotion Recognition Predictions")
@@ -408,7 +409,6 @@ elif page == 'Facial Emotion Recognition':
                     st.image(labeled_image)
                     st.download_button('Download Image', data=byte_im,file_name="image_emotion_recognition.png", mime="image/jpeg")
 
-                    # Create json and download button
                     st.json(detections)
                     st.download_button('Download Predictions', json.dumps(str(detections)), file_name='image_emotion_recognition.json')
                 else:
