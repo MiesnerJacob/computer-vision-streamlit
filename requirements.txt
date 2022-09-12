@@ -13,3 +13,4 @@ opencv-python-headless
 typing_extensions
 protobuf
 fer-pytorch
+easyocr

@@ -398,7 +398,6 @@ elif page == 'Facial Emotion Recognition':
                     labeled_image = labeled_image[..., ::-1]
                     labeled_image = Image.fromarray(np.uint8(labeled_image))
 
-
                 if labeled_image is not None and detections is not None:
                     # Create image buffer and download
                     buf = BytesIO()
