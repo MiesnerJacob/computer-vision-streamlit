@@ -9,7 +9,7 @@ plotly
 torch
 torchvision
 seaborn
-opencv-contrib-python
+opencv-python==4.5.5.64
 typing_extensions
 protobuf
 fer-pytorch
