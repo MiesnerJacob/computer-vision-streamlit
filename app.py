@@ -5,7 +5,6 @@ from image_object_detection import ImageObjectDetection
 from image_classification import ImageClassification
 from facial_emotion_recognition import FacialEmotionRecognition
 from hand_gesture_classification import HandGestureClassification
-from image_captioning import ImageCaptioning
 from image_optical_character_recgonition import ImageOpticalCharacterRecognition
 import plotly.express as px
 from PIL import Image
