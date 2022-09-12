@@ -1,3 +1,4 @@
+opencv-python-headless
 streamlit-option-menu
 timm
 mediapipe

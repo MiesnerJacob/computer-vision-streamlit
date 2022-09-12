@@ -5,16 +5,15 @@ import av
 
 class FacialEmotionRecognition:
     """
-    XXXXX.
+    Recognize emotions on faces utilizing computer vision.
     """
 
     def __init__(self):
         """
-        The constructor for XXX class.
+        The constructor for FacialEmotionRecognition class.
         Attributes:
-            xxx: ___
-            xxx: ___
-            xxx: ___
+            fer: class, for accessing facial emotion recognitino model
+            label_colors: dict, mapping dictionary for diaplying bounding box and text colors
         """
 
         self.fer = FER()
@@ -31,48 +30,66 @@ class FacialEmotionRecognition:
 
     def prediction_label(self, image_np):
         """
-        XXX.
+        Perform inference and annotate image.
 
         Parameters:
-            xxx (type): ___
+            image_np (PIL image): image to perform classification on
         Returns:
-            xxx (type): ___
+            output_image (type): PIL image, annotated image with bounding box, class, and pred probability
+            clean_preds (type): dict, pred probabilities for all emotion classes
         """
 
+        # Copy raw image and perform inference
         output_image = image_np.copy()
         results_raw = self.fer.predict_image(image_np)
 
+        # Return nothing if no detections
         if results_raw == []:
             return image_np, None
+        # Get detections from raw_results
         else:
             results = results_raw[0]
 
+            # Get bounding box values
             xmin, ymin, xmax, ymax = results['box']
+
+            # Sort emoitons by pred probability descending
             emotions = sorted(results['emotions'].items(), key=lambda x: x[1], reverse=True)
+
+            # Title case predicted class
             class_pred = emotions[0][0].title()
+
+            # Format pred probability as percentage
             class_prob = "{:.2%}".format(emotions[0][1])
 
+            # Settings for drawing predictions
             font = cv2.FONT_HERSHEY_SIMPLEX
             fontScale = 1
             thickness = 1
 
+            # Draw face bouding box
             output_image= cv2.rectangle(output_image, pt1=(int(xmin), int(ymin)), pt2=(int(xmax), int(ymax)), \
                                      color=self.label_colors[class_pred], thickness=2)
+
+            # Draw pred class and pred probability
             cv2.putText(output_image, f"{class_pred}: {str(class_prob)}", (int(xmin) - 20, int(ymin) - 20), font,
                         fontScale, self.label_colors[class_pred], thickness, cv2.LINE_AA)
 
-            return output_image, dict(emotions)
+            # Format emotion predictions as dictionary
+            clean_preds = dict(emotions)
+
+            return output_image, clean_preds
 
     def static_vid_fer(self, frames, fps):
         """
-        XXX.
+        Perform emotion recognition on video file.
 
         Parameters:
-            xxx (type): ___
-        Returns:
-            xxx (type): ___
+            frames (list): list of images from broken down video
+            fps (int): number of frames per second in source video
         """
 
+        # Create empty container for displaying inference in real-time
         image_container = st.empty()
 
         # Set video
