@@ -32,42 +32,37 @@ hide_streamlit_style = """
             """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# @st.cache(allow_output_mutation=True)
-# def load_video_object_detection():
-#     return VideoObjectDetection()
-#
-# @st.cache(allow_output_mutation=True)
-# def load_image_object_detection():
-#     return ImageObjectDetection()
-#
-# @st.cache(allow_output_mutation=True)
-# def load_image_classifier():
-#     return ImageClassification()
-#
+@st.cache(allow_output_mutation=True)
+def load_video_object_detection():
+    return VideoObjectDetection()
+
+@st.cache(allow_output_mutation=True)
+def load_image_object_detection():
+    return ImageObjectDetection()
+
+@st.cache(allow_output_mutation=True)
+def load_image_classifier():
+    return ImageClassification()
+
 @st.cache(allow_output_mutation=True)
 def load_facial_emotion_classifier():
     return FacialEmotionRecognition()
-#
-# @st.cache(allow_output_mutation=True)
-# def load_hand_gesture_classifier():
-#     return HandGestureClassification()
 
-# @st.cache(allow_output_mutation=True)
-# def load_image_captioning():
-#     return ImageCaptioning()
-#
-# @st.cache(allow_output_mutation=True)
-# def load_image_optical_character_recognition():
-#     return ImageOpticalCharacterRecognition()
+@st.cache(allow_output_mutation=True)
+def load_hand_gesture_classifier():
+    return HandGestureClassification()
+
+@st.cache(allow_output_mutation=True)
+def load_image_optical_character_recognition():
+    return ImageOpticalCharacterRecognition()
 
 
-# video_object_detection = load_video_object_detection()
-# image_object_detection = load_image_object_detection()
-# image_classifier = load_image_classifier()
+video_object_detection = load_video_object_detection()
+image_object_detection = load_image_object_detection()
+image_classifier = load_image_classifier()
 facial_emotion_classifier = load_facial_emotion_classifier()
-# hand_gesture_classifier = load_hand_gesture_classifier()
-# image_captioning = load_image_captioning()
-# image_optical_character_recognition = load_image_optical_character_recognition()
+hand_gesture_classifier = load_hand_gesture_classifier()
+image_optical_character_recognition = load_image_optical_character_recognition()
 
 image_examples = {'Traffic': 'examples/Traffic.jpeg',
                   'Barbeque': 'examples/Barbeque.jpeg',
@@ -96,14 +91,12 @@ with st.sidebar:
                                 "Image Classification",
                                 "Facial Emotion Recognition",
                                 "Hand Gesture Classification",
-                                "Image Captioning",
                                 "Optical Character Recognition"],
                        icons=["house-door",
                               "search",
                               "check-circle",
                               "emoji-smile",
                               "hand-thumbs-up",
-                              "body-text",
                               "eyeglasses"],
                        default_index=0,
                        )
@@ -461,39 +454,6 @@ elif page == 'Hand Gesture Classification':
         media_stream_constraints={"video": True, "audio": False},
         async_processing=True,
     )
-
-elif page == 'Image Captioning':
-    st.header('Image Captioning')
-    st.markdown("![Alt Text](https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif)")
-
-    input_type = st.radio(
-        "Use example or upload your own?",
-        ('Example', 'Upload'))
-
-    if input_type == 'Example':
-        option = st.selectbox(
-            'Which example would you like to use?',
-            ('Home Office', 'Traffic', 'Barbeque', 'Car', 'Dog', 'Tropics'))
-        uploaded_file = image_examples[option]
-    else:
-        uploaded_file = st.file_uploader("Choose a file", type=['jpg', 'jpeg', 'png'])
-
-    if st.button('🔥 Run!'):
-        if uploaded_file is None:
-            st.error("No file uploaded yet.")
-        else:
-            with st.spinner("Running caption generation..."):
-                img = image_captioning.caption(uploaded_file)
-
-                # Create image buffer and download
-                buf = BytesIO()
-                img.save(buf, format="PNG")
-                byte_im = buf.getvalue()
-
-                st.subheader("Captioning Prediction")
-                st.image(img)
-                st.download_button('Download Image', data=byte_im, file_name="image_captioned.png",
-                                   mime="image/jpeg")
 
 elif page == 'Optical Character Recognition':
     st.header('Image Optical Character Recognition')
