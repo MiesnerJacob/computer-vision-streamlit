@@ -20,10 +20,10 @@ class FacialEmotionRecognition:
         # self.fer.get_pretrained_model("resnet34")
         self.label_colors = {
             'Neutral': (245, 114, 66),
-            'Happiness': (5, 245, 5),
+            'Happy': (5, 245, 5),
             'Surprise': (18, 255, 215),
-            'Sadness': (245, 5, 49),
-            'Anger': (82, 50, 168),
+            'Sad': (245, 5, 49),
+            'Angry': (82, 50, 168),
             'Disgust': (5, 245, 141),
             'Fear': (205, 245, 5)
         }
