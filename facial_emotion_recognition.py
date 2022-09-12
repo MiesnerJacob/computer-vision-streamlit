@@ -1,6 +1,6 @@
 import streamlit as st
 import cv2
-from fer_pytorch.fer import FER
+from fer import FER
 import av
 
 class FacialEmotionRecognition:
@@ -17,7 +17,7 @@ class FacialEmotionRecognition:
         """
 
         self.fer = FER()
-        self.fer.get_pretrained_model("resnet34")
+        # self.fer.get_pretrained_model("resnet34")
         self.label_colors = {
             'Neutral': (245, 114, 66),
             'Happiness': (5, 245, 5),
@@ -41,7 +41,7 @@ class FacialEmotionRecognition:
 
         # Copy raw image and perform inference
         output_image = image_np.copy()
-        results_raw = self.fer.predict_image(image_np)
+        results_raw = self.fer.detect_emotions(image_np)
 
         # Return nothing if no detections
         if results_raw == []:
