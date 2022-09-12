@@ -9,8 +9,8 @@ plotly
 torch
 torchvision
 seaborn
-opencv-python-headless
 typing_extensions
 protobuf
 fer-pytorch
 easyocr
+opencv-python-headless
