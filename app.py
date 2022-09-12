@@ -137,6 +137,8 @@ file_.close()
 
 # Page Definitions
 if page == "Welcome!":
+
+    # Page info display
     st.header('Welcome!')
     st.markdown(
         f'<img src="data:image/gif;base64,{data_url}" alt="cat gif">',
@@ -203,14 +205,17 @@ if page == "Welcome!":
 
 if page == "Object Detection":
 
+    # Page info display
     st.header('Object Detection')
     st.markdown("![Alt Text](https://media.giphy.com/media/vAvWgk3NCFXTa/giphy.gif)")
     st.write("This object detection app uses a pretrained YOLOv5 model which was trained to recognize the labels contained within the COCO dataset. More info [here](https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/) on the classes this app can detect.")
 
+    # User selected option for data type
     data_type = st.radio(
         "Select Data Type",
         ('Webcam', 'Video', 'Image'))
 
+    # If data type is Webcam use streamlit_webrtc to connect, use callback function for inference
     if data_type == 'Webcam':
         RTC_CONFIGURATION = RTCConfiguration(
             {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
@@ -224,11 +229,13 @@ if page == "Object Detection":
             async_processing=True,
         )
 
+    # If data type is Video provide option to use example or upload your own
     elif data_type == 'Video':
         input_type = st.radio(
             "Use example or upload your own?",
             ('Example', 'Upload'))
 
+        # Load in example or uploaded video
         if input_type == 'Example':
             option = st.selectbox(
                 'Which example would you like to use?',
@@ -240,20 +247,26 @@ if page == "Object Detection":
         else:
             uploaded_file = st.file_uploader("Choose a file", type=['mp4'])
 
+        # Create video frames and run detection when user clicks run!
         if st.button('🔥 Run!'):
+            # Stop according to user input
             if st.button('STOP'):
                 pass
+            # Throw error if there is no file
             if uploaded_file is None:
                 st.error("No file uploaded yet.")
             else:
+                # Create file if user uploads their own
                 if uploaded_file and input_type == 'Upload':
                     vid = uploaded_file.name
                     with open(vid, mode='wb') as f:
                         f.write(uploaded_file.read())
 
+                # Create video frames
                 with st.spinner("Creating video frames..."):
                     frames, fps = create_video_frames(vid)
 
+                # Run Object detection
                 with st.spinner("Running object detection..."):
                     st.subheader("Object Detection Predictions")
                     video_object_detection.static_vid_obj(frames, fps)
@@ -262,6 +275,7 @@ if page == "Object Detection":
                         if vid:
                             os.remove(vid)
 
+                # Provide download option
                 video_file=open('outputs/annotated_video.mp4', 'rb')
                 video_bytes = video_file.read()
                 st.download_button(
@@ -270,11 +284,14 @@ if page == "Object Detection":
                     file_name='annotated_video.mp4',
                     mime='video/mp4'
                 )
+
+    # If data type is Image provide option to use example or upload your own
     elif data_type == 'Image':
         input_type = st.radio(
             "Use example or upload your own?",
             ('Example', 'Upload'))
 
+        # Load in example or uploaded image
         if input_type == 'Example':
             option = st.selectbox(
                 'Which example would you like to use?',
@@ -283,20 +300,25 @@ if page == "Object Detection":
         else:
             uploaded_file = st.file_uploader("Choose a file", type=['jpg', 'jpeg', 'png'])
 
+        # Run detection and provide download options when user clicks run!
         if st.button('🔥 Run!'):
+            # Throw error if there is no file
             if uploaded_file is None:
                 st.error("No file uploaded yet.")
             else:
+                # Run object detection
                 with st.spinner("Running object detection..."):
                     img = Image.open(uploaded_file)
                     labeled_image, detections = image_object_detection.classify(img)
 
+                # Provide download options if objects were detected
                 if labeled_image and detections:
                     # Create image buffer and download
                     buf = BytesIO()
                     labeled_image.save(buf, format="PNG")
                     byte_im = buf.getvalue()
 
+                    # Download annotated image options
                     st.subheader("Object Detection Predictions")
                     st.image(labeled_image)
                     st.download_button('Download Image', data=byte_im,file_name="image_object_detection.png", mime="image/jpeg")
@@ -307,16 +329,18 @@ if page == "Object Detection":
 
 elif page == 'Facial Emotion Recognition':
 
+    # Page info display
     st.header('Facial Emotion Recognition')
     st.markdown("![Alt Text](https://media.giphy.com/media/bnhtSlVeo7BxC/giphy.gif)")
     st.write('This app can classify seven different emotions including: Neutral, Happiness, Surprise, Sadness, Anger, Disgust, and Fear. Try it out!')
 
+    # User selected option for data type
     data_type = st.radio(
         "Select Data Type",
         ('Webcam', 'Video', 'Image'))
 
+    # If data type is Webcam use streamlit_webrtc to connect, use callback function for inference
     if data_type == 'Webcam':
-
         RTC_CONFIGURATION = RTCConfiguration(
             {"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}
         )
@@ -330,10 +354,12 @@ elif page == 'Facial Emotion Recognition':
         )
 
     elif data_type == 'Video':
+        # Option to use example video or upload your own
         input_type = st.radio(
             "Use example or upload your own?",
             ('Example', 'Upload'))
 
+        # Load in example or uploaded video
         if input_type == 'Example':
             option = st.selectbox(
                 'Which example would you like to use?',
@@ -345,20 +371,26 @@ elif page == 'Facial Emotion Recognition':
         else:
             uploaded_file = st.file_uploader("Choose a file", type=['mp4'])
 
+        # Create video frames and run recognition when user clicks run!
         if st.button('🔥 Run!'):
+            # Stop according to user input
             if st.button('STOP'):
                 pass
+            # Throw error if there is no file
             if uploaded_file is None:
                 st.error("No file uploaded yet.")
             else:
+                # Create file when user uploads their own video
                 if uploaded_file and input_type == 'Upload':
                     vid = uploaded_file.name
                     with open(vid, mode='wb') as f:
                         f.write(uploaded_file.read())
 
+                # Create video frames
                 with st.spinner("Creating video frames..."):
                     frames, fps = create_video_frames(vid)
 
+                # Run emotion recognition
                 with st.spinner("Running emotion recognition..."):
                     st.subheader("Emotion Recognition Predictions")
                     facial_emotion_classifier.static_vid_fer(frames, fps)
@@ -367,6 +399,7 @@ elif page == 'Facial Emotion Recognition':
                         if vid:
                             os.remove(vid)
 
+                # Provide download options
                 video_file=open('outputs/annotated_video.mp4', 'rb')
                 video_bytes = video_file.read()
                 st.download_button(
@@ -375,11 +408,14 @@ elif page == 'Facial Emotion Recognition':
                     file_name='annotated_video.mp4',
                     mime='video/mp4'
                 )
+
+    # If data type is Image provide option to use example or upload your own
     elif data_type == 'Image':
         input_type = st.radio(
             "Use example or upload your own?",
             ('Example', 'Upload'))
 
+        # If data type is Image provide option to use example or upload your own
         if input_type == 'Example':
             option = st.selectbox(
                 'Which example would you like to use?',
@@ -389,34 +425,42 @@ elif page == 'Facial Emotion Recognition':
             uploaded_file = st.file_uploader("Choose a file", type=['jpg', 'jpeg', 'png'])
 
         if st.button('🔥 Run!'):
+            # Throw error if there is no file
             if uploaded_file is None:
                 st.error("No file uploaded yet.")
             else:
+                # Run emotion recognition
                 with st.spinner("Running emotion recognition..."):
                     img = cv2.imread(uploaded_file)
-
                     labeled_image, detections = facial_emotion_classifier.prediction_label(img)
+
+                    # Format output to rgb for display
                     labeled_image = labeled_image[..., ::-1]
                     labeled_image = Image.fromarray(np.uint8(labeled_image))
 
+                # Provide download options if objects were detected
                 if labeled_image is not None and detections is not None:
                     # Create image buffer and download
                     buf = BytesIO()
                     labeled_image.save(buf, format="PNG")
                     byte_im = buf.getvalue()
 
+                    # Provide download option annotated image
                     st.subheader("Emotion Recognition Predictions")
                     st.image(labeled_image)
                     st.download_button('Download Image', data=byte_im,file_name="image_emotion_recognition.png", mime="image/jpeg")
 
+                    # Provide download option for predictions
                     st.json(detections)
                     st.download_button('Download Predictions', json.dumps(str(detections)), file_name='image_emotion_recognition.json')
                 else:
+                    # Display warning when no face is detected in the image
                     st.image(img)
                     st.warning('No faces recognized in this image...')
 
 elif page == 'Hand Gesture Classification':
 
+    # Page info display
     st.header('Hand Gesture Classification')
     st.markdown("![Alt Text](https://media.giphy.com/media/tIeCLkB8geYtW/giphy.gif)")
     st.write('This app can classify ten different hand gestures including: Okay, Peace, Thumbs Up, Thumbs Down, Hang Loose, Stop, Rock On, Star Trek, Fist, Smile Sign. Try it out!')
@@ -434,13 +478,16 @@ elif page == 'Hand Gesture Classification':
 
 elif page == 'Optical Character Recognition':
 
+    # Page info display
     st.header('Image Optical Character Recognition')
     st.markdown("![Alt Text](https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif)")
 
+    # User selected option for data type
     input_type = st.radio(
         "Use example or upload your own?",
         ('Example', 'Upload'))
 
+    # Provide option to use example or upload your own
     if input_type == 'Example':
         option = st.selectbox(
             'Which example would you like to use?',
@@ -450,6 +497,7 @@ elif page == 'Optical Character Recognition':
         uploaded_file = st.file_uploader("Choose a file", type=['jpg', 'jpeg', 'png'])
 
     if st.button('🔥 Run!'):
+        # Run OCR
         with st.spinner("Running optical character recognition..."):
             annotated_image, text = image_optical_character_recognition.image_ocr(uploaded_file)
 
@@ -458,6 +506,7 @@ elif page == 'Optical Character Recognition':
         annotated_image.save(buf, format="PNG")
         byte_im = buf.getvalue()
 
+        # Display and provide download option for annotated image
         st.subheader("Captioning Prediction")
         st.image(annotated_image)
         if text == '':
@@ -469,13 +518,16 @@ elif page == 'Optical Character Recognition':
 
 elif page == 'Image Classification':
 
+    # Page info display
     st.header('Image Classification')
     st.markdown("![Alt Text](https://media.giphy.com/media/Zvgb12U8GNjvq/giphy.gif)")
 
+    # User selected option for data type
     input_type = st.radio(
         "Use example or upload your own?",
         ('Example', 'Upload'))
 
+    # Provide option to use example or upload your own
     if input_type == 'Example':
         option = st.selectbox(
             'Which example would you like to use?',
@@ -485,19 +537,22 @@ elif page == 'Image Classification':
         uploaded_file = st.file_uploader("Choose a file", type=['jpg', 'jpeg', 'png'])
 
     if st.button('🔥 Run!'):
+        # Throw error if there is no file
         if uploaded_file is None:
             st.error("No file uploaded yet.")
         else:
+            # Run classification
             with st.spinner("Running classification..."):
                 img = Image.open(uploaded_file)
                 preds = image_classifier.classify(img)
 
-            st.write("")
+            # Display image
             st.subheader("Classification Predictions")
             st.image(img)
             fig = px.bar(preds.sort_values("Pred_Prob", ascending=True), x='Pred_Prob', y='Class', orientation='h')
             st.write(fig)
 
+            # Provide download option for predictions
             st.write("")
             csv = preds.to_csv(index=False).encode('utf-8')
             st.download_button('Download Predictions',csv,
