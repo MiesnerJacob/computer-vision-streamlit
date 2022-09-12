@@ -7,16 +7,18 @@ import av
 
 class HandGestureClassification:
     """
-    XXXXX.
+    Classify hand gestures.
     """
 
     def __init__(self):
         """
-        The constructor for XXX class.
+        The constructor for HandGestureClassification class.
         Attributes:
-            xxx: ___
-            xxx: ___
-            xxx: ___
+            mpHands: mediapipe hands objects
+            hands: mediapipe hands object with arguments set
+            mpDraw: mediapipe drawing utils
+            model: model for performing classification of hand gestures
+            classNames: names of classes that the model classifies
         """
 
         # initialize mediapipe
@@ -34,12 +36,12 @@ class HandGestureClassification:
 
     def gesture_classification(self, frame):
         """
-        XXX.
+        Perform hand detection, classification inference, and annotate frame.
 
         Parameters:
-            xxx (type): ___
+            frame (av.VideoFrame): frame from webcam
         Returns:
-            xxx (type): ___
+            frame (av.VideoFrame): annotated video frame
         """
 
         x, y, c = frame.shape
@@ -93,12 +95,12 @@ class HandGestureClassification:
 
     def callback(self, frame: av.VideoFrame) -> av.VideoFrame:
         """
-        XXX.
+        Callback for hand gesture classification through webcam.
 
         Parameters:
-            xxx (type): ___
+            frame (av.VideoFrame): video frame taken from webcam
         Returns:
-            xxx (type): ___
+            annotated_frame (av.VideoFrame): video frame with annotations included
         """
 
         image = frame.to_ndarray(format="bgr24")

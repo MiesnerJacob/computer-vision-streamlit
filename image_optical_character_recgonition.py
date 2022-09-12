@@ -4,16 +4,14 @@ from PIL import Image, ImageDraw
 
 class ImageOpticalCharacterRecognition:
     """
-    XXXXX.
+    Recognize text in images.
     """
 
     def __init__(self):
         """
-        The constructor for XXX class.
+        The constructor for ImageOpticalCharacterRecognition class.
         Attributes:
-            xxx: ___
-            xxx: ___
-            xxx: ___
+            reader: model for running ocr
         """
 
         self.reader = easyocr.Reader(['en'])
@@ -21,10 +19,13 @@ class ImageOpticalCharacterRecognition:
     @staticmethod
     def draw_boxes(image_path, bounds, color='yellow', width=2):
         """
-        XXX.
+        Draw boxes around the text identified within the images.
 
         Parameters:
-            xxx (type): ___
+            image_path (PIL images): image to draw boxes on
+            bounds (list): locations for bounding boxes within image
+            color (string): color to draw bounding boxes with
+            width (int): thickness of bounding box lines
         Returns:
             xxx (type): ___
         """
@@ -42,12 +43,13 @@ class ImageOpticalCharacterRecognition:
 
     def run_recognition(self, image_path):
         """
-        XXX.
+        Run ocr and extract relevant results.
 
         Parameters:
-            xxx (type): ___
+            image_path (str): location for image file
         Returns:
-            xxx (type): ___
+            boxes (list): list for bounding boxes to apply to image
+            text (str): extracted text from image
         """
 
         extracted_text = self.reader.readtext(image_path)
@@ -60,12 +62,13 @@ class ImageOpticalCharacterRecognition:
 
     def image_ocr(self, image_path):
         """
-        XXX.
+        Extract text from image and annotate image.
 
         Parameters:
-            xxx (type): ___
+            image_path (str): path to image file
         Returns:
-            xxx (type): ___
+            annotated_image (PIL Image): image with bounding boxes drawn on it
+            text (str): text extracted from image
         """
 
         boxes, text = self.run_recognition(image_path)

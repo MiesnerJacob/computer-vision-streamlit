@@ -97,9 +97,12 @@ class FacialEmotionRecognition:
         fourcc = cv2.VideoWriter_fourcc(*'MP4V')
         video = cv2.VideoWriter('outputs/annotated_video.mp4', fourcc, fps, (width, height))
 
+        # Iterate through video frames and perform inference
         for index, frame in enumerate(frames):
             # Model inference
             annotated_image, raw_preds = self.prediction_label(frame)
+
+            # Display annotated image
             image_container.image(annotated_image, caption=f'Frame number #{index}')
             color_adjusted_image = cv2.cvtColor(annotated_image, cv2.COLOR_RGB2BGR)
             video.write(color_adjusted_image)
@@ -109,12 +112,12 @@ class FacialEmotionRecognition:
 
     def callback(self, frame: av.VideoFrame) -> av.VideoFrame:
         """
-        XXX.
+        Callback for running emotion recognition through webcam.
 
         Parameters:
-            xxx (type): ___
+            frame (av.VideoFrame): video frame taken from webcam
         Returns:
-            xxx (type): ___
+            annotated_frame (av.VideoFrame): video frame with annotations included
         """
 
         image = frame.to_ndarray(format="bgr24")
