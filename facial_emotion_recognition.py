@@ -16,8 +16,7 @@ class FacialEmotionRecognition:
             label_colors: dict, mapping dictionary for diaplying bounding box and text colors
         """
 
-        self.fer = FER()
-        # self.fer.get_pretrained_model("resnet34")
+        self.fer = FER(mtcnn=True)
         self.label_colors = {
             'Neutral': (245, 114, 66),
             'Happy': (5, 245, 5),
