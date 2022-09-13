@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="3cd54a21-2484-4774-870f-46d892639dad" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/facial_emotion_recognition.py" beforeDir="false" afterPath="$PROJECT_DIR$/facial_emotion_recognition.py" afterDir="false" />
+    <list default="true" id="a4f39a85-a0d3-4e86-b576-d16c24ffa037" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
