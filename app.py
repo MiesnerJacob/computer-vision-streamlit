@@ -119,7 +119,7 @@ with st.sidebar:
         """
         <style>
         [data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
-            width: 375px;
+            width: 350px;
         }
         </style>
         """,
