@@ -363,9 +363,9 @@ elif page == 'Facial Emotion Recognition':
         if input_type == 'Example':
             option = st.selectbox(
                 'Which example would you like to use?',
-                (['Kanye',
-                  'Laughing Guy',
-                  'Parks and Recreation']))
+                (['Laughing Guy',
+                  'Parks and Recreation',
+                  'Kanye']))
             uploaded_file = video_examples[option]
             vid = uploaded_file
         else:
