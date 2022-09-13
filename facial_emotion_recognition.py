@@ -50,7 +50,7 @@ class FacialEmotionRecognition:
             results = results_raw[0]
 
             # Get bounding box values
-            xmin, ymin, xmax, ymax = results['box']
+            x, y, width, height = results['box']
 
             # Sort emoitons by pred probability descending
             emotions = sorted(results['emotions'].items(), key=lambda x: x[1], reverse=True)
@@ -67,7 +67,7 @@ class FacialEmotionRecognition:
             thickness = 1
 
             # Draw face bouding box
-            output_image= cv2.rectangle(output_image, pt1=(int(xmin), int(ymin)), pt2=(int(xmax), int(ymax)), \
+            output_image= cv2.rectangle(output_image, pt1=(int(x), int(y)), pt2=(int(x + width), int(y + height)), \
                                      color=self.label_colors[class_pred], thickness=2)
 
             # Draw pred class and pred probability
