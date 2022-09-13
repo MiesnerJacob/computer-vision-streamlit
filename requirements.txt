@@ -1,6 +1,6 @@
-opencv-contrib-python==4.5.5.64
-opencv-python==4.5.5.64
-opencv-python-headless==4.5.5.64
+opencv-contrib-python==4.5.4.60
+opencv-python==4.5.4.60
+opencv-python-headless==4.5.4.60
 streamlit-option-menu==0.3.2
 timm==0.5.4
 mediapipe==0.8.10.1
