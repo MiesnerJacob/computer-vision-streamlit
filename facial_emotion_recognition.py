@@ -71,7 +71,7 @@ class FacialEmotionRecognition:
                                      color=self.label_colors[class_pred], thickness=2)
 
             # Draw pred class and pred probability
-            cv2.putText(output_image, f"{class_pred}: {str(class_prob)}", (int(xmin) - 20, int(ymin) - 20), font,
+            cv2.putText(output_image, f"{class_pred}: {str(class_prob)}", (int(x) - 20, int(y) - 20), font,
                         fontScale, self.label_colors[class_pred], thickness, cv2.LINE_AA)
 
             # Format emotion predictions as dictionary
