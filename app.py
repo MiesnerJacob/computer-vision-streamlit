@@ -176,11 +176,10 @@ if page == "Welcome!":
         * This application has the ability to take both Images and Videos as input 
 
         * This application currently supports:
-            * Image Object Detection
-            * Video Object Detection
-            * Image Classification
-            * Hand Gesture Classification
-            * Image Captioning
+            * Object Detection
+            * Facial Emotion Recognition
+            * Image and Video Classification
+            * Optical Character Recognition
 
         More features may be added in the future including additional Computer Vision tasks and demos, depending on community feedback. 
         Please reach out to me at miesner.jacob@gmail.com or at my Linkedin page listed below if you have ideas or suggestions for improvement.
